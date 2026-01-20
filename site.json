@@ -1,0 +1,17 @@
+{
+    "oName": "s_vysovenPage",
+    "o": null,
+    "dir": "viteyss-site-oven",
+    "asModule": true,
+    "asVite": true,
+    "asPlugin": true,
+    "jssrc":["c_vys_oven_Page.js"],
+    "apisrc":["api_oven.js"],
+    "enable": true,
+    "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
+    "ver": "0.0.1",
+    "desc": "To run it / live or result / process / display ...",
+    "otdm":{
+        "playground": false
+    }
+}

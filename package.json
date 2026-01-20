@@ -1,0 +1,17 @@
+{
+  "name": "viteyss-site-oven",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    
+    "testVanila": "cd /home/yoyo/Apps/viteyss; node ./runItSelector.js  --yssSites=0 --homeSites=0 --viteyssSites=0",
+    
+
+    "mkBackup": "fn=$npm_package_name\"_v\"$npm_package_version\"_tt\"`date +%y%m%d%H%M%S`\".tar.bz2\"; echo \"name will be [$fn]\";  tar --exclude=\".git\" --exclude=\"node_modules\" -cvf \"../\"$fn ./; echo \"Backup done: [$fn]\"; ls -alh ../$fn"
+  },
+  "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
+  "license": "MIT",
+  "description": "To run it / live or result / process / display ..."
+}
