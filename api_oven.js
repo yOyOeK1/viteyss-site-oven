@@ -81,6 +81,7 @@ class serveroven{
         }
 
         let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
+        //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
         let spObj = {
             ident: semaforPath,
             'sp': sp,

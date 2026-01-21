@@ -2,7 +2,7 @@
 <div class="smallBt">
 
 
-Working: {{ oven.working  }}
+Working: {{ oven.working  }} ( {{ oven.runNo }} )
 
 <OvGroup v-if="0"
     gtitle="abc gTitle test"
@@ -162,8 +162,8 @@ pennding now:</pre>
     >
     <div v-for="res,resNo in oven.results"
         :style="'border:1px solid green;'"
-        >[{{ res.id }}]
-        <small>#   {{ res.data.res.join('\n#\t') }}</small>
+        >
+        <small><pre>[{{ res.id }}]: {{ res.data.res.join('\n#\t') }}</pre></small>
 
     </div>
 
@@ -171,14 +171,19 @@ pennding now:</pre>
 <OvGroup
     gtitle="cmd:"
     >
-    <input type="text" @change="onChangeInput_toCmd"></input>
-    <select @change="onChangeInput_toCmd">
+    <button
+        title="Save this command in history global TODO"
+        ><i class="fa-solid fa-heart-circle-plus"></i></button>
+
+    <input type="text" @change="onChangeInput_toCmd" ref="cmdInputRef"
+        style="min-width: 75%;"></input><br></br>
+    <select @change="$refs.cmdInputRef.value = $event.target.value;$refs.cmdInputRef.focus();"
+        style="min-width: 90%;">
+        <option value="">- - -</option>
         <option v-for="cmdH,cmdI in oven.cmdHistory"
-            :value="cmdH"
-            >
+            :value="cmdH">
             [ {{ cmdI }} ]: {{ cmdH }}
-        </option>
-    
+        </option>   
     
     </select>
 </OvGroup>
@@ -192,7 +197,7 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="### Selector">
+    gtitle="### Baking recipe">
 
     protocal:<!-- <br></br>
     <input type="text" v-model="selectonNow.mediumProtocal"></input>-->
@@ -201,10 +206,27 @@ pennding now:</pre>
             [ {{ pci}} ]: {{ procal }}
         </option>
     </select>    
-    <br></br>
+    
 
-    topic adres:<br></br>
-    <input type="text" v-model="selectonNow.topicAddress"></input><br></br>
+    <div v-if="selectonNow.mediumProtocal == 'mqtt'">
+        topic adres:
+        <input type="text" v-model="selectonNow.topicAddress"></input><br></br>
+    </div>
+    <div  v-else-if="selectonNow.mediumProtocal == 'cmd'">
+        command:
+        <select @change="selectonNow.topicAddress = $event.target.value">
+            <option value="0">- - -</option>
+            <option v-for="cmdH,cmdI in oven.cmdHistory"
+                :value="cmdH"
+                >
+                [ {{ cmdI }} ]: {{ cmdH }}
+            </option>
+        
+        
+        </select>
+    </div>
+
+
 
     title:<br></br>
     <input type="text" v-model="selectonNow.title"></input><br></br>
@@ -271,27 +293,30 @@ data(){
     return {
 
         selectonNow:{
-            mediumProtocal:'mqtt', 
-            topicAddress:"e01Mux/#", 
-            title: 'test e01#', 
+            mediumProtocal:'cmd', 
+            topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
+            title: 'test e01 - time since', 
             valType: 'raw',
             wrapType: 'toast',
-            liveSes: true,
+            liveSes: false,
         },
 
         oven:{
             working: true,
+            runNo: 0,
             tUpdate: undefined,
             data: undefined,
             results:[],
             isWatching: false,
             watchingIter: -1,
             
-            cmdHistory: [],
+            cmdHistory: [
+                'echo $(( `date +%s` - 1769016074 ))', // start count since 2026-01-21 12:....
+            ],
             
             opts:{
                 mediumProtocal: [ 'mqtt', 
-                    'bash' ], 
+                    'cmd' ], 
                 topicAddress: [], 
                 title: [], 
                 valType: [ 'raw', 'secLeft', 'percent' ],
@@ -422,7 +447,7 @@ methods:{
         if( linesC > 5 && lis[ linesC - 1 ] == '# ----- DONE'){
             tr.exitCode = lis[ linesC - 2 ].split(',')[1];
 
-            let spDataEnd = linesC - 2;
+            let spDataEnd = linesC - 3;
             let prefLen = templateP.length;
             for( let li=spDataStart+1; li<spDataEnd; li++ )
                 if( lis[ li ] != tepmlateS){
@@ -547,6 +572,8 @@ methods:{
 
         if( mediumProtocal == 'mqtt' )
             cmd = `mosquitto_sub -t '${topicAddress}' -h 'hu' -p 10883 -V mqttv311`;
+        else if( mediumProtocal == 'cmd' )
+            cmd = topicAddress;
         else{
             console.log('EE NAN medium protocal ',mediumProtocal);
             return 1;
@@ -554,17 +581,30 @@ methods:{
 
 
         let postProcess = ( chunkNo, res ) => {
-            if( valType == 'raw' && res != undefined ){
+            if( valType == 'raw' ){
+                //console.log('[over 1111RAW] res',res);
                 this.msgWrapInType( `${title}: ( raw ): ${res}`, wrapType );
                 
-            }else if( valType == 'secLeft' ){
-                mRes = parseInt(res.split(']')[1]);
-                this.msgWrapInType( 
-                    `${title}: ( sec left )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+            }else if( valType == 'secLeft' && res.length > 0 ){
+                res.forEach( r => {
+                    console.log('[over 6789] res ->',r);
+                    if( r ){
+                        mRes = parseInt(r);
+                        this.msgWrapInType( 
+                            `${title}: ( sec left )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+                    
+                    }
+
+                });
+            
         
-            }else if( valType == 'percent' ){
-                mRes = parseInt(res.split(']')[1]);
-                this.msgWrapInType( `${title}: ( percent )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType  );
+            }else if( valType == 'percent' && res.length > 0  ){
+                res.forEach( r => {
+                    if( r ){
+                        mRes = parseInt(r);
+                        this.msgWrapInType( `${title}: ( percent )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType  );
+                    }
+                });
                 /*{
                     text:`<div id="${divName}"></div>`,
                     afterShown: function () {
@@ -581,7 +621,7 @@ methods:{
 
 
             }else {
-                console.log('EE 5678987 valType not supported ',valType);
+                console.log('EE 5678987 valType not supported [',valType,'] is array of ('+res.length+') \n res: ',res);
             }
         };
 
@@ -648,15 +688,15 @@ methods:{
             cmd = `df -h $HOME`;
             liveSes = false;
             let divName = 'abc'+Date.now();
-            postProcess = ( res ) => {
-                console.log('[oven]-diskSpace ',res);
-                let rWords = res[1].split(' ');
+            postProcess = ( chunkNo, result ) => {
+                console.log('[oven]-diskSpace ',result);
+                let rWords = result[2].split(' ');
                 let percInd = rWords.findIndex(o => o.endsWith('%') );
                 let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
                 let gigW = rWords.filter( w => w.length > 2 );
                 let gigAvail =  gigW[ 3 ];
                 $.toast({
-                    text:`Disk space at home: <br><br>${res[1]}<br><div id="${divName}"></div>`,
+                    text:`Disk space at home: <br><br>${result[2]}<br><div id="${divName}"></div>`,
                     afterShown: function () {
                         let justGage2 = new JustGage({
                             id: divName,
@@ -675,20 +715,24 @@ methods:{
 
 
 
+        // final end
         if( cmd != undefined && liveSes == false ){
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onReady':(r)=>{
                     let cmdRes = this.cunksResult_resultObject( r );
-                    console.log('[oven] onOvenCompact DONE',cmdRes.res );
+                    let resToPass = cmdRes.res;
+                    console.log('[oven] onOvenCompact DONE',resToPass ,'\n postprocess:',postProcess );
                     //this.onQeryTasksNow();
                     if( postProcess != undefined ){
-                        postProcess( cmdRes.res );
+                        postProcess( 0, resToPass );
                     }
                     tDelta = ( (Date.now() - tStart) /1000 );
                     console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
                 }
             });
 
+
+        // stream
         }else if( cmd != undefined && liveSes == true ){
             let chunkNo = 0
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
@@ -705,9 +749,9 @@ methods:{
                                 l.lastIndexOf(']# [@@] ping client[ ') == -1 &&
                                 l.lastIndexOf('   # GOGO ... #') == -1
                             )
-                                resOk.push( l );
+                                resOk.push( l.substring( l.indexOf(']   ')+4 ) );
                         } );
-                        postProcess( chunkNo, resOk.join('\n') );
+                        postProcess( chunkNo, resOk );
                     }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
                         postProcess( chunkNo, r );
                         }
@@ -724,7 +768,10 @@ methods:{
     },
 
     onCmdStrTocmdResConole( cmd ){
-        this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(cmd),{
+        let bta = btoa(cmd);
+        console.log(`[oven1] cmd0 sending cmd: [ ${atob( bta )} ]`);
+
+        this.onDoFetch( '/apis/oven/cmd0/b64:'+bta,{
             'onReady':(r)=>{
                 //console.log('[oven] cmd0 finally .... ',r );
                 let cmdRes = this.cunksResult_resultObject( r );
