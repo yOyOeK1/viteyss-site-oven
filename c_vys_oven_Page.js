@@ -27,7 +27,7 @@ class s_vysovenPage{
   getHtml = () => {
 
     return `<b>${this.getName}</b><br>
-    <img src="${this.homeUrl}assets/ico_viteyss_32.png"><br><!--
+    <img src="${this.homeUrl}assets/ico_mafinOven_64_64.png"><br><!--
     This is a npm package<br>
     viteyss-site-oven<br>
     <pre>

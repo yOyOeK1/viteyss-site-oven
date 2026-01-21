@@ -1,93 +1,249 @@
-<template>
-working: {{ oven.working  }}
+<template >
+<div class="smallBt">
 
-<div>
-    <a @click="onQeryTasksNow()">
-        Q - task list</a>
-    | 
+
+Working: {{ oven.working  }}
+
+<OvGroup v-if="0"
+    gtitle="abc gTitle test"
+    > 
+    abc <b>html</b>
+</OvGroup>
+
+
+<OvGroup
+    gtitle="Exec on local" >
+
+    <button 
+        title="Home - Disk Space information"
+        @click="onOvenCompact( 'disk space' )"><i class="fa-regular fa-hard-drive"></i></button>
+    
+    |
+    
+    <span title="cpu's on off cores">
+        <i class="fa-solid fa-microchip"></i>
+            [
+            <input type="checkbox" value="0" checked 
+                @change="console.log('click'+$event.target.checked);
+                    onCmdStrTocmdResConole( $event.target.checked ? 
+                        'sudo /home/yoyo/bin/cpusOff.sh 1' : 
+                        'sudo /home/yoyo/bin/cpusOff.sh 0'
+                        );
+                    " 
+                />
+            | 
+            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 0` )">0</a> |
+            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 1` )">1</a>]
+    </span> 
+    
+    |
+    
+    
+    
+    
+</OvGroup>
+
+<OvGroup
+    gtitle="Tools - dev 1" >
+
+    <button 
+        title="subscribe to all topics at mqtt"
+        @click="makeHook( 'mqtt', '#', 'all topics', 'raw', 'widget' )"># all topiks</button> 
+    
+    |
+
     <a @click="onDoFetch( '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0')">
         start tast</a>
     | 
     <a @click="onCmdPredefined()">
         st</a> 
-    <hr></hr>
+</OvGroup>
+
+
+<OvGroup
+    gtitle="Subscribe" >
+    
+    <button 
+        title="e01Mux time left to switch ..."
+        @click="onOvenCompact( 'e01Mux_left' )">e01Mux left</button> 
+    
+    |
+
+    <button 
+        title="Home percent battery status"
+        @click="onOvenCompact( 'home_perc' )">home battery</button> 
+    
+    
+    
+</OvGroup>
+    
+
+
+<OvGroup
+    gtitle="Exec about host" >
+    
+    |
+    
+    <a @click="onQeryTasksNow()">
+        QTaskList</a>
+        
+    | 
+    
+    <a 
+        title="ps [ PID's ] of subprocess on host"
+        @click="onCmdStrTocmdResConole( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">
+        ?</a> 
+    |
+    
+    
+    
+    
+    
+</OvGroup>
+
+
+    
+<OvGroup
+    gtitle="QTaskList - results"
+    >
     
     <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
     <div v-if="oven.tUpdate != undefined">
-        <pre>{{ new Date(oven.tUpdate) }}
+        <OvGroup
+            gtitle="#### fast - status">            
+            <pre>{{ new Date(oven.tUpdate) }}
 tasks total:    [ {{ oven.data.length }} ] running [ {{ oven.data.filter( sp => sp.tEnd == undefined ).length }} ]
 errCode:        [ {{ oven.data.filter( sp => sp.exitCode != 0 ).length }} ]
 pennding now:</pre>
-
-        <div v-for="spi,sNo in oven.data.filter( spi => spi.tEnd == undefined )">
-            [TODOisRunningNow] | 
-            [<a 
-                @click="oven_onSendKill( spi.sp.pid, 'KILL' )"
-                title="kill process"
-                >k</a>] 
-            [<a 
-                @click="oven_onSendKill( spi.sp.pid, 'STOP' )"
-                title="pause"
-                >p</a>]
-            [<a 
-                @click="oven_onSendKill( spi.sp.pid, 'CONT' )"
-                title="resume if pause"
-                >r</a>]
-            [<a 
-                title="set low nice"
-                >n-</a>] 
-            [<a 
-                title="set high nice"
-                >n+</a>]
-            |
-            [{{ spi.runNo }}] pid: [{{spi.sp.pid }}]
-            |
-
-            {{ parseInt(Date.now()- spi.tStart)/1000.00 }} sec.
-            |
-            {{ spi.ident }}
-            <small>{{spi.sp.spawnargs[2]}}</small>
-        </div>
-
-        results:
-        <div v-for="res,resNo in oven.results"
-            :style="'border:1px solid green;'"
-            >[{{ res.id }}]
-            <small>#   {{ res.data.res.join('\n#\t') }}</small>
-        </div>
-
-        
-        <div class="smallBt">
-            cmd:
-            <a @click="onCmdStrTocmdResConole( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">Qproces status</a> |
-            <div title="cpu on off cores">
-                <i class="fa-solid fa-microchip"></i>
-                    [<a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 0` )">0</a>|
-                    <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 1` )">1</a>]
-            </div> | 
-            <button 
-                title="Home - Disk Space information"
-                @click="onOvenCompact( 'disk space' )"><i class="fa-regular fa-hard-drive"></i></button> |
-            <button 
-                title="e01Mux time left to switch ..."
-                @click="onOvenCompact( 'e01Mux_left' )">e01Mux left</button> |
-            <button 
-                title="Home percent battery status"
-                @click="onOvenCompact( 'home_perc' )">home battery</button> |
-            <br></br>
-            <input type="text" @change="onChangeInput_toCmd"></input>
-        </div>
+        </OvGroup>
 
     </div>
 
+    
+    
+    <div v-if="oven.data == undefined">not loaded ...</div>
+    
+    <div v-else v-for="spi,sNo in oven.data.filter( spi => spi.tEnd == undefined )">
+        [TODOisRunningNow] | 
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'KILL' )"
+            title="kill process"
+            >k</a>] 
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'STOP' )"
+            title="pause"
+            >p</a>]
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'CONT' )"
+            title="resume if pause"
+            >r</a>]
+        [<a 
+            title="set low nice"
+            >n-</a>] 
+        [<a 
+            title="set high nice"
+            >n+</a>]
+        |
+        [{{ spi.runNo }}] pid: [{{spi.sp.pid }}]
+        |
+
+        {{ parseInt(Date.now()- spi.tStart)/1000.00 }} sec.
+        |
+        {{ spi.ident }}
+        <small>{{spi.sp.spawnargs[2]}}</small>
+    </div>
+</OvGroup>
+
+
+   
+
+<OvGroup
+    gtitle="Cmd - results"
+    >
+    <div v-for="res,resNo in oven.results"
+        :style="'border:1px solid green;'"
+        >[{{ res.id }}]
+        <small>#   {{ res.data.res.join('\n#\t') }}</small>
+
+    </div>
+
+</OvGroup> 
+<OvGroup
+    gtitle="cmd:"
+    >
+    <input type="text" @change="onChangeInput_toCmd"></input>
+    <select @change="onChangeInput_toCmd">
+        <option v-for="cmdH,cmdI in oven.cmdHistory"
+            :value="cmdH"
+            >
+            [ {{ cmdI }} ]: {{ cmdH }}
+        </option>
+    
+    
+    </select>
+</OvGroup>
 
 
 
-    <div>status ... over</div>
-    <div>---</div>
+
+
+<div>status ... over</div>
+<div>---</div>
+
+
+<OvGroup
+    gtitle="### Selector">
+
+    protocal:<!-- <br></br>
+    <input type="text" v-model="selectonNow.mediumProtocal"></input>-->
+    <select v-model="selectonNow.mediumProtocal">
+        <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
+            [ {{ pci}} ]: {{ procal }}
+        </option>
+    </select>    
+    <br></br>
+
+    topic adres:<br></br>
+    <input type="text" v-model="selectonNow.topicAddress"></input><br></br>
+
+    title:<br></br>
+    <input type="text" v-model="selectonNow.title"></input><br></br>
+
+    type of value:<!--<br></br>
+    <input type="text" v-model="selectonNow.valType"></input>-->
+    <select v-model="selectonNow.valType">
+        <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
+            [ {{ vti }} ]: {{ valtyp }}
+        </option>
+    </select><br></br>
+
+    msg wrapper:<!--<br></br>
+    <input type="text" v-model="selectonNow.wrapType"></input>-->
+    <select v-model="selectonNow.wrapType">
+        <option v-for="wratyp, wti in oven.opts.wrapType" :value="wratyp">
+            [ {{ wti }} ]: {{ wratyp }}
+        </option>
+    </select><br></br>
+
+    live sesion:<br></br>
+    <input type="checkbox" v-model="selectonNow.liveSes"></input><br></br>
+
+    <button @click="onProbeSelector()">probe selector</button><hr></hr>
+
+</OvGroup>
+
+
+
+
+widgets:
+<div v-for="w, wIn in oven.widgets.reverse()" >
+    widget{{ wIn }}---
+    <div v-html="w"></div>
 </div>
 
 
+
+</div>
 </template>
 
 
@@ -95,9 +251,11 @@ pennding now:</pre>
 
 console.log('[oven] inclide. ...');
 import { msToDurationString } from '/libs/libsForTime.js';
+import ovGroup from './ovGroup.vue';
 
 export default{
 components:{
+    'OvGroup': ovGroup
 },
 mounted(){
     setTimeout(()=>{
@@ -111,14 +269,43 @@ unmounted(){
 data(){   
 
     return {
+
+        selectonNow:{
+            mediumProtocal:'mqtt', 
+            topicAddress:"e01Mux/#", 
+            title: 'test e01#', 
+            valType: 'raw',
+            wrapType: 'toast',
+            liveSes: true,
+        },
+
         oven:{
             working: true,
             tUpdate: undefined,
             data: undefined,
             results:[],
             isWatching: false,
-            watchingIter: -1
+            watchingIter: -1,
+            
+            cmdHistory: [],
+            
+            opts:{
+                mediumProtocal: [ 'mqtt', 
+                    'bash' ], 
+                topicAddress: [], 
+                title: [], 
+                valType: [ 'raw', 'secLeft', 'percent' ],
+                wrapType: [ 'toast', 'widget', 
+                    'log' ],
+                liveSes: [ true, false ],
+            },
+            
+            widgets:[
+                
+            ],
+            
         },
+        
     
     };
 },
@@ -194,7 +381,7 @@ methods:{
             exitCode:undefined,
 
         };
-        debugger
+        
         if( lines.length > 0  ){
             lines.findIndex( l => {
                 if( l.indexOf('#  runNo:        [ ') != -1 ){
@@ -254,6 +441,10 @@ methods:{
 
     onChangeInput_toCmd( ev ){
         let cmdStr = `${ev.target.value}`;
+        
+        //if( this.oven.cmdHistory.findIndex( ch => ch == cmdStr ) == -1 )
+            this.oven.cmdHistory.push( cmdStr );
+        
         console.log('[oven] got cmd: ', cmdStr );
         this.onCmdStrTocmdResConole( `${cmdStr}` );
         ev.target.value = '';
@@ -267,7 +458,7 @@ methods:{
         this.onDoFetch( '/apis/oven/QTaskList',{
             'onReady':(r)=>{
                 let j = JSON.parse( r );
-                console.log('[oven] qery test now result .... ',
+                console.log('[oven] QTaskList result .... ',
                     //JSON.stringify( j ,null,4)
                 );
                 this.oven.tUpdate = Date.now();
@@ -283,6 +474,21 @@ methods:{
         $.toast( msg );
     },
 
+    msgWrapInWidget( msg ){
+        this.oven.widgets.push( msg );
+    },
+
+    msgWrapInType( msg, wrapType ){
+        if( wrapType == 'toast' ){
+            this.msgWrapInToast( msg );
+        }else if( wrapType == 'widget' ){
+            this.msgWrapInWidget( msg );
+
+        }else{
+            console.log('[oven] ee make hook msg wraper nan ',wrapType);
+            return 1;
+        }
+    },
 
     dataWrapType( title, data, valType ){
         if( valType == 'secLeft' ){
@@ -306,16 +512,39 @@ methods:{
                         
 
         }else{
-            console.log('EE dataWrapType Nan ',valType);
+                console.log('EE dataWrapType Nan ',valType);
         }
     },
 
 
     makeMqttHook(topicAddress, title, valType ){
-        return this.makeHook( 'mqtt', topicAddress, title, valType );
+        return this.makeHook( 'mqtt', topicAddress, title, valType, 'toast' );
+        //return this.makeHook( 'mqtt', topicAddress, title, valType, 'widget' );
     },
-    makeHook( mediumProtocal, topicAddress, title, valType ){
+
+    onProbeSelector(){
+        let postProcessCmd = this.makeHook( 
+            this.selectonNow.mediumProtocal, 
+            this.selectonNow.topicAddress, 
+            this.selectonNow.title, 
+            this.selectonNow.valType, 
+            this.selectonNow.wrapType
+        );
+
+         
+        this.onOvenCompact_full( 'nooo custom', 
+            postProcessCmd.cmd, 
+            postProcessCmd.postProcess, 
+            this.selectonNow.liveSes 
+        );
+    },
+
+    makeHook( mediumProtocal, topicAddress, title, valType, wrapType ){
+        
         let cmd = undefined;
+        //let msg = undefined;
+        let mRes = undefined;
+
         if( mediumProtocal == 'mqtt' )
             cmd = `mosquitto_sub -t '${topicAddress}' -h 'hu' -p 10883 -V mqttv311`;
         else{
@@ -325,18 +554,17 @@ methods:{
 
 
         let postProcess = ( chunkNo, res ) => {
-            let mRes = parseInt(res.split(']')[1]);
-
-            
-            if( valType == 'secLeft' ){
-                this.msgWrapInToast( `${title}: ( sec left )<br><br>${ this.dataWrapType( '', mRes, valType ) }<br>` );
-
-
+            if( valType == 'raw' && res != undefined ){
+                this.msgWrapInType( `${title}: ( raw ): ${res}`, wrapType );
+                
+            }else if( valType == 'secLeft' ){
+                mRes = parseInt(res.split(']')[1]);
+                this.msgWrapInType( 
+                    `${title}: ( sec left )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+        
             }else if( valType == 'percent' ){
-                let divName = 'ooccPerc'+Date.now();
-                this.msgWrapInToast(
-                    `${title}: ( percent )<br><br>${ this.dataWrapType( '', mRes, valType ) }<br>`
-                 );
+                mRes = parseInt(res.split(']')[1]);
+                this.msgWrapInType( `${title}: ( percent )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType  );
                 /*{
                     text:`<div id="${divName}"></div>`,
                     afterShown: function () {
@@ -352,13 +580,12 @@ methods:{
                 });*/
 
 
-
-
             }else {
                 console.log('EE 5678987 valType not supported ',valType);
-
             }
         };
+
+        
 
         return {postProcess, cmd};
     },
@@ -375,6 +602,12 @@ methods:{
 
     /** from string to ready predefine something */
     onOvenCompact( compactName = 'disk space'){
+        this.onOvenCompact_full( compactName );
+    },
+
+
+    onOvenCompact_full( compactName = 'disk space', ownCmd = undefined, ownPost = undefined, ownLive = false ){
+
         let cmd = undefined;
         let liveSes = undefined;
         let postProcess = undefined;
@@ -383,8 +616,12 @@ methods:{
         let tDelta = undefined;
 
 
-        
-        if( compactName == 'e01Mux_left' ){
+        if( ownCmd != undefined ){
+            cmd = ownCmd;
+            postProcess = ownPost;
+            liveSes = ownLive;
+
+        }else if( compactName == 'e01Mux_left' ){
             //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
             liveSes = true;
             let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
@@ -394,7 +631,7 @@ methods:{
         } else if( compactName == 'home_perc' ){
             //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
             liveSes = true;
-            let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery [ % ]', 'percent' );
+            let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent' );
             cmd = postProcessCmd.cmd;
             postProcess = postProcessCmd.postProcess;
 
@@ -412,7 +649,7 @@ methods:{
             liveSes = false;
             let divName = 'abc'+Date.now();
             postProcess = ( res ) => {
-                
+                console.log('[oven]-diskSpace ',res);
                 let rWords = res[1].split(' ');
                 let percInd = rWords.findIndex(o => o.endsWith('%') );
                 let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));

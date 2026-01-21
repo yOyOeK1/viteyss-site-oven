@@ -38,76 +38,27 @@ class serveroven{
         res.write( '['+res.runNo+']'+str+"\n" );
     }
 
-
-    startBeaking=( req, res, cmdToDo )=>{
+    linesToAppendArray( res, lines, arrayTo ){
+        for( let line of `${lines}`.split('\n') ){
+            arrayTo.push( line );
+            this.cl2(res,   '   '+line );
+        }
         
+        return arrayTo;
+    }
+
+
+    startBeaking=( req, res, cmdToDo )=>{        
         this.runNo++;
         let runNo = `${this.runNo}`;
         res['runNo'] = runNo;
-        let clientOnline = 1;   
-        
+        let clientOnline = 1;        
         this.writeHeadChunke( res );
-/*
-       
-
-        // echo -n '/home/yoyo/Apps/viteyss-site-oven/oven/inPlace2_260117tt165934.oven' | base64
-        // L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
-        // http://localhost:8080/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
-
         
-        
-        //debugger
-        let cmd = ['echo -n "# "`date`"\n";',
-            `echo "# [i] Hello from api_oven terminal agent ..";`,
-            'echo "# pwd:   [`pwd`]";',
-            `echo "# Will performe automatic sequence to make from .oven to  _Ready in place.";`,
-            `echo "# ... start in 5 sec";`,
-            `sleep .15;`,
-            `echo "GOGOGO from sh layer ....";pwd;`,
-            `echo "# * will convert .oven to .sh ...";
-
-mkpLog=\`mktemp\`
-
-cd ${this.envMy.dirnameProcess}
-node ./runItSelector.js --site=oven --convertToSh=1 --files="${fPath}" >> "$mkpLog"
-exitC="$?"
-echo "# [d] Exit convert with code: [ ""$exitC"" ]"                
-if test "$exitC" = "11";then
-echo "# * echo convert OK in log file [ $mkpLog ]"
-shFilePath=\`cat "$mkpLog" | grep "target sh file " | awk '{print $6}' \`
-echo "# * sh file path  ...  [ $shFilePath ]"
-if test -e "$shFilePath";then
-    echo "# * make it executable ..."
-    chmod +x "$shFilePath"
-    cd \`dirname "$shFilePath"\`
-    pwd
-    echo "run in ... 5""exec \`basename "$shFilePath"\`"
-    sleep 5
-    exec \`basename "$shFilePath"\`
-
-else
-    echo "#EE * no sh file in target place "
-fi
-
-else
-echo "#EE * convert error exit 9"
-
-fi                
-            `,
-            `echo "# Done _______________"\`date\`;exec bash`].join('\n');
-            
-            //date;sleep 5;df -h;date;sleep 5;df -h;date;sleep 5;df -h;echo 'done';`;
-            //cmd = `gnome-terminal -- bash -c "${cmd}"`;
-            cmd = 'echo "ok ready";sleep 1; echo "doing it ...."; sleep 1; echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date; echo "doing it ...."; sleep 1; echo "cmd in bash DONE"; '
-            */
-        //cmd = `gnome-terminal --wait -- bash -c '${cmd}'`;
-        let cmd = `cmdToDo='${cmdToDo}';echo "# will make cmdToDo"; echo "# [ $cmdToDo ] "; echo "# ... in 5 sec\n. . .\n";sleep .5;echo "# GOGOGO ..."; $cmdToDo && exitCodeCmd="$?"&& echo "1 Main cmd bash exitWith: [ $exitCodeCmd ]" || exitCodeCmd="$?"&& echo "2Main cmd bash exitWith: [ $exitCodeCmd ]";`;
         let waitForEndInter = -1;
         let waitForEnd = true;
         let cDir = this.chkCasheDir( res, this.casheFolder );
         let semaforPath = `${this.casheFolder}/${Date.now()}_status_`;
-        //let spStatus = '';
-        //let cDir = this.chkCasheDir( res, dirname );
         let extOk = true;
         
         this.cl2(res, [
@@ -121,16 +72,12 @@ fi
             ' entry date:   [ '+Date.now()+' ]',
             '',
             '',
-            ' Plan is to run it in place if all good',
-            ' ... will start in 5 sec.'
             ].join('\n# ')
         );
         
         if( extOk == false ){
             this.cl2(res,'No start extension not ok !! EXIT;');
-
             return 0;
-
         }
 
         let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
@@ -140,9 +87,11 @@ fi
             'runNo': runNo,
             'status' : 'running ...',
             'tEnd': undefined,
+            'tEndWatchDog': undefined,
             'tStart': Date.now(),
             'exitCode': undefined,
-            'log': [],
+            'stdout': [],
+            'stderr': [],
         };
         this.spList.push( spObj );
         //spStatus = 'running ...';
@@ -150,19 +99,13 @@ fi
 
         sp.stdout.on( 'data', d =>{
             this.cl2(res,           '[sp][data] ... ');
-            for( let line of `${d}`.split('\n') ){
-                if( line != '' ){
-                    //this.cl2(res,   '           \x1b[2m'+line+'\x1b[0m' );
-                    this.cl2(res,   '   '+line );
-                    //logCmd.push( line );
-                    spObj.log.push( line );
-                }
-            }
-
+            spObj.stdout = this.linesToAppendArray( res, d, spObj.stdout );
+           
         });
 
         sp.stderr.on( 'data', d =>{
-            this.cl2(res, '[sp][err]: '+d);
+            this.cl2(res, '[sp][err] ... ');
+            spObj.stderr = this.linesToAppendArray( res, d, spObj.stderr );
         });
 
         sp.on('close', exitCode => {
@@ -176,20 +119,19 @@ fi
             //this.cl2(res, '# [sp][close] BakeInPlace');
             res.end('# ----- DONE');
             waitForEndInter = -1;
-
-
-
+            
 
         });            
         sp.stdin.end();
         
         waitForEndInter = setInterval(()=>{
             if( waitForEnd == false || spObj.status == 'done' ){
+            
                 this.cl2(res, '# [@@] BakeInPlace ... At WATCHDOG');
                 clearInterval( waitForEndInter );
                 
                 this.cl2(res, '# [@@] BakeInPlace ... cleaning sub process list ');
-                spObj.tEnd = Date.now();
+                spObj.tEndWatchDog = Date.now();
 
                 res.end('# ----- DONE');
                 waitForEndInter = -1;
@@ -214,7 +156,6 @@ fi
 
 
     }
-
 
 
 
@@ -499,6 +440,200 @@ fi
 
 
     }
+    
+    
+    
+    
+    
+    
+    
+    /// old 
+        startBeaking_old=( req, res, cmdToDo )=>{        
+        this.runNo++;
+        let runNo = `${this.runNo}`;
+        res['runNo'] = runNo;
+        let clientOnline = 1;        
+        this.writeHeadChunke( res );
+/*
+       
+
+        // echo -n '/home/yoyo/Apps/viteyss-site-oven/oven/inPlace2_260117tt165934.oven' | base64
+        // L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
+        // http://localhost:8080/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
+
+        
+        
+        //debugger
+        let cmd = ['echo -n "# "`date`"\n";',
+            `echo "# [i] Hello from api_oven terminal agent ..";`,
+            'echo "# pwd:   [`pwd`]";',
+            `echo "# Will performe automatic sequence to make from .oven to  _Ready in place.";`,
+            `echo "# ... start in 5 sec";`,
+            `sleep .15;`,
+            `echo "GOGOGO from sh layer ....";pwd;`,
+            `echo "# * will convert .oven to .sh ...";
+
+mkpLog=\`mktemp\`
+
+cd ${this.envMy.dirnameProcess}
+node ./runItSelector.js --site=oven --convertToSh=1 --files="${fPath}" >> "$mkpLog"
+exitC="$?"
+echo "# [d] Exit convert with code: [ ""$exitC"" ]"                
+if test "$exitC" = "11";then
+echo "# * echo convert OK in log file [ $mkpLog ]"
+shFilePath=\`cat "$mkpLog" | grep "target sh file " | awk '{print $6}' \`
+echo "# * sh file path  ...  [ $shFilePath ]"
+if test -e "$shFilePath";then
+    echo "# * make it executable ..."
+    chmod +x "$shFilePath"
+    cd \`dirname "$shFilePath"\`
+    pwd
+    echo "run in ... 5""exec \`basename "$shFilePath"\`"
+    sleep 5
+    exec \`basename "$shFilePath"\`
+
+else
+    echo "#EE * no sh file in target place "
+fi
+
+else
+echo "#EE * convert error exit 9"
+
+fi                
+            `,
+            `echo "# Done _______________"\`date\`;exec bash`].join('\n');
+            
+            //date;sleep 5;df -h;date;sleep 5;df -h;date;sleep 5;df -h;echo 'done';`;
+            //cmd = `gnome-terminal -- bash -c "${cmd}"`;
+            cmd = 'echo "ok ready";sleep 1; echo "doing it ...."; sleep 1; echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date; echo "doing it ...."; sleep 1; echo "cmd in bash DONE"; '
+            */
+        //cmd = `gnome-terminal --wait -- bash -c '${cmd}'`;
+        let cmd = `cmdToDo='${cmdToDo}';echo "# will make cmdToDo"; echo "# [ $cmdToDo ] "; echo "# ... in 5 sec\n. . .\n";sleep .5;echo "# GOGOGO ..."; $cmdToDo && exitCodeCmd="$?"&& echo "1 Main cmd bash exitWith: [ $exitCodeCmd ]" || exitCodeCmd="$?"&& echo "2Main cmd bash exitWith: [ $exitCodeCmd ]";`;
+        let waitForEndInter = -1;
+        let waitForEnd = true;
+        let cDir = this.chkCasheDir( res, this.casheFolder );
+        let semaforPath = `${this.casheFolder}/${Date.now()}_status_`;
+        //let spStatus = '';
+        //let cDir = this.chkCasheDir( res, dirname );
+        let extOk = true;
+        
+        this.cl2(res, [
+            ` viteyss-site-oven / ${this.url} ... `,
+            '',
+            ' will exec?    [ '+extOk+' ]',
+            ' cmd to run: ',
+            '               [ '+cmdToDo+' ]',
+            ' runNo:        [ '+runNo+' ]',
+            ' semafor path: [ '+semaforPath+ ' ]',
+            ' entry date:   [ '+Date.now()+' ]',
+            '',
+            '',
+            ' Plan is to run it in place if all good',
+            ' ... will start in 5 sec.'
+            ].join('\n# ')
+        );
+        
+        if( extOk == false ){
+            this.cl2(res,'No start extension not ok !! EXIT;');
+
+            return 0;
+
+        }
+
+        let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
+        let spObj = {
+            ident: semaforPath,
+            'sp': sp,
+            'runNo': runNo,
+            'status' : 'running ...',
+            'tEnd': undefined,
+            'tStart': Date.now(),
+            'exitCode': undefined,
+            'log': [],
+        };
+        this.spList.push( spObj );
+        //spStatus = 'running ...';
+        
+
+        sp.stdout.on( 'data', d =>{
+            this.cl2(res,           '[sp][data] ... ');
+            for( let line of `${d}`.split('\n') ){
+                if( line != '' ){
+                    //this.cl2(res,   '           \x1b[2m'+line+'\x1b[0m' );
+                    this.cl2(res,   '   '+line );
+                    //logCmd.push( line );
+                    spObj.log.push( line );
+                }
+            }
+
+        });
+
+        sp.stderr.on( 'data', d =>{
+            this.cl2(res, '[sp][err]: '+d);
+        });
+
+        sp.on('close', exitCode => {
+            this.cl2(res, ['[sp][close] ',exitCode]);
+            clearInterval( waitForEndInter );
+            
+            spObj.status='done';
+            spObj.exitCode = exitCode;
+            spObj.tEnd = Date.now();
+            //waitForEnd = false
+            //this.cl2(res, '# [sp][close] BakeInPlace');
+            res.end('# ----- DONE');
+            waitForEndInter = -1;
+
+
+
+
+        });            
+        sp.stdin.end();
+        
+        waitForEndInter = setInterval(()=>{
+            if( waitForEnd == false || spObj.status == 'done' ){
+                this.cl2(res, '# [@@] BakeInPlace ... At WATCHDOG');
+                clearInterval( waitForEndInter );
+                
+                this.cl2(res, '# [@@] BakeInPlace ... cleaning sub process list ');
+                spObj.tEnd = Date.now();
+
+                res.end('# ----- DONE');
+                waitForEndInter = -1;
+
+                
+
+            }else{
+                this.cl2(res, '# [@@] ping client[ '+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')');
+            }
+
+        },15000);
+
+        
+        req.on('close',e=>{
+            this.cl('\n\n['+runNo+'][##] http client left close');
+            clientOnline = 0;
+
+        });
+        req.on('error',e=>{
+            this.cl('\n\n['+runNo+'][##] http client left error');
+        });
+
+
+    }
+
+
+    // --- end old 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
 
 export { serveroven }
