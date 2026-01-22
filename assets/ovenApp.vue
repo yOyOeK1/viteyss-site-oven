@@ -87,13 +87,13 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     <a @click="onQeryTasksNow()">
         QTaskList</a>
         
-    | 
-    
-    <a 
+    |  <a 
         title="ps [ PID's ] of subprocess on host"
         @click="onCmdStrTocmdResConole( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">
         ?</a> 
     |
+    
+   
     
     
     
@@ -247,8 +247,36 @@ pennding now:</pre>
         </option>
     </select><br></br>
 
-    live sesion:<br></br>
-    <input type="checkbox" v-model="selectonNow.liveSes"></input><br></br>
+    * <input type="checkbox" v-model="selectonNow.liveSes"
+    id="recLivSes"></input>
+    <label for="recLivSes"
+        style="display: inline;">
+        live sesion
+    </label><br></br>
+
+    * <input type="checkbox" v-model="selectonNow.sharedSession"
+    id="recShaSel"></input>
+    <label for="recShaSel"
+        style="display: inline;">
+        shared task
+    </label><br></br>
+
+    * <input type="checkbox" v-model="selectonNow.onlyWhenImOnline"
+        id="reconlWheImOn"></input>
+    <label for="reconlWheImOn"
+        style="display: inline;">
+        kill after disconnect
+    </label><br>
+
+
+
+    <div v-if="selectonNow.liveSes == false">
+        so interval then every ( .sec ):<br></br>
+        <input type="number" min="1" max="600" step="1" v-model="selectonNow.intervalEverySec" ><br></br>
+        <small>0 - no interval </small>
+    </div>
+
+
 
     <button @click="onProbeSelector()">probe selector</button><hr></hr>
 
@@ -297,9 +325,15 @@ data(){
             topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
             title: 'test e01 - time since', 
             valType: 'raw',
-            wrapType: 'toast',
+            wrapType: 'terminal',
             liveSes: false,
+            intervalEverySec: 0,
+            iterator: -1,
+            sharedSession:true,
+            onlyWhenImOnline:false,
         },
+
+        iterators: [],
 
         oven:{
             working: true,
@@ -310,8 +344,12 @@ data(){
             isWatching: false,
             watchingIter: -1,
             
+            
             cmdHistory: [
                 'echo $(( `date +%s` - 1769016074 ))', // start count since 2026-01-21 12:....
+                `free -hm | grep Mem | awk '{print "Ram: "$3"/"$2}'`, // #	Ram: 2.5Gi/30Gi
+                `free | grep Mem | awk '{print ($3/$2)*100.00}'`, // to percent rame use
+                `acpi -b | awk '{print $4}' | replace '%,' ''`, // # batery local status
             ],
             
             opts:{
@@ -320,7 +358,7 @@ data(){
                 topicAddress: [], 
                 title: [], 
                 valType: [ 'raw', 'secLeft', 'percent' ],
-                wrapType: [ 'toast', 'widget', 
+                wrapType: [ 'toast', 'widget', 'terminal',
                     'log' ],
                 liveSes: [ true, false ],
             },
@@ -451,14 +489,14 @@ methods:{
             let prefLen = templateP.length;
             for( let li=spDataStart+1; li<spDataEnd; li++ )
                 if( lis[ li ] != tepmlateS){
-                    console.log('insert - '+lis[ li ]);
+                    //console.log('insert - '+lis[ li ]);
                     tr.res.push( lis[ li ].substring( prefLen ) );
                 }
 
         }
 
 
-        this.oven.results.push( {id:tr.runNo, data: tr} );
+        //this.oven.results.push( {id:tr.runNo, data: tr} );
 
         return tr;
     },
@@ -472,7 +510,7 @@ methods:{
         
         console.log('[oven] got cmd: ', cmdStr );
         this.onCmdStrTocmdResConole( `${cmdStr}` );
-        ev.target.value = '';
+        //ev.target.value = '';
     },
 
     
@@ -508,6 +546,11 @@ methods:{
             this.msgWrapInToast( msg );
         }else if( wrapType == 'widget' ){
             this.msgWrapInWidget( msg );
+
+        }else if( wrapType == 'terminal' ){
+            console.log(`[oven] msg wrap go to terminal ...`, msg );
+
+        
 
         }else{
             console.log('[oven] ee make hook msg wraper nan ',wrapType);
@@ -548,6 +591,9 @@ methods:{
     },
 
     onProbeSelector(){
+
+        console.log(`[oven] on probe selector - recipe \n`,JSON.stringify( this.selectonNow, null, 4));
+
         let postProcessCmd = this.makeHook( 
             this.selectonNow.mediumProtocal, 
             this.selectonNow.topicAddress, 
@@ -555,7 +601,25 @@ methods:{
             this.selectonNow.valType, 
             this.selectonNow.wrapType
         );
+     
+        
+        
+        if( this.selectonNow.liveSes == false && this.selectonNow.intervalEverySec != '0' ){
+            this.iterators.push(
+                setInterval( () => { 
 
+                    this.onOvenCompact_full( 'nooo custom', 
+                        postProcessCmd.cmd, 
+                        postProcessCmd.postProcess, 
+                        this.selectonNow.liveSes 
+                    );
+
+                }, 
+                parseInt( this.selectonNow.intervalEverySec ) * 1000 
+                )
+            );
+
+        }
          
         this.onOvenCompact_full( 'nooo custom', 
             postProcessCmd.cmd, 
@@ -586,8 +650,8 @@ methods:{
                 this.msgWrapInType( `${title}: ( raw ): ${res}`, wrapType );
                 
             }else if( valType == 'secLeft' && res.length > 0 ){
+                console.log('[over 6789] res ->',r);
                 res.forEach( r => {
-                    console.log('[over 6789] res ->',r);
                     if( r ){
                         mRes = parseInt(r);
                         this.msgWrapInType( 
@@ -619,6 +683,10 @@ methods:{
                     }
                 });*/
 
+            
+
+            
+
 
             }else {
                 console.log('EE 5678987 valType not supported [',valType,'] is array of ('+res.length+') \n res: ',res);
@@ -626,6 +694,11 @@ methods:{
         };
 
         
+        if( wrapType == 'terminal' ){
+            cmd = `x-terminal-emulator -e "${cmd};sleep 10;"`;
+        }
+
+
 
         return {postProcess, cmd};
     },
@@ -689,7 +762,7 @@ methods:{
             liveSes = false;
             let divName = 'abc'+Date.now();
             postProcess = ( chunkNo, result ) => {
-                console.log('[oven]-diskSpace ',result);
+                //console.log('[oven]-diskSpace ',result);
                 let rWords = result[2].split(' ');
                 let percInd = rWords.findIndex(o => o.endsWith('%') );
                 let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
@@ -732,6 +805,12 @@ methods:{
             });
 
 
+        // [ ] proces dy when client leaws
+        // [ ] postprocess to server site
+        // [ ] wrapper to server site
+        // [ ] directory layout for config
+        //
+
         // stream
         }else if( cmd != undefined && liveSes == true ){
             let chunkNo = 0
@@ -747,7 +826,8 @@ methods:{
                         tLinst.filter( l => {
                             if( l.lastIndexOf('][sp][data] ...') == -1 &&
                                 l.lastIndexOf(']# [@@] ping client[ ') == -1 &&
-                                l.lastIndexOf('   # GOGO ... #') == -1
+                                l.lastIndexOf('   # GOGO ... #') == -1 && 
+                                l.lastIndexOf('][sp][close] ,') == -1 
                             )
                                 resOk.push( l.substring( l.indexOf(']   ')+4 ) );
                         } );
@@ -777,6 +857,7 @@ methods:{
                 let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven1] cmd0 res .... ',JSON.stringify(cmdRes,null,4) );
                 
+                this.oven.results.push( {id:cmdRes.runNo, data: cmdRes} );
 
                 },
             'onChunk':(r)=>{
