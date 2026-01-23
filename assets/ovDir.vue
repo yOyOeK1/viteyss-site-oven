@@ -32,7 +32,7 @@ channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} 
             style="color:cadetblue;"
             @click="onChannelAction( chi, 'click' )"><i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a> 
-        - {{ ch['title'] }}<pre v-if="dir[ adressUrl ]['layout']['channels'][ chi ]['sp']" v-html="JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['sp'].result,null,4)"></pre>
+        - {{ ch['rName'] }}<pre v-if="dir[ adressUrl ]['layout']['channels'][ chi ]['sp']" v-html="JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['sp'].result,null,4)"></pre>
         
     </div>
 

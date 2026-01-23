@@ -1,7 +1,7 @@
 {
     "mediumProtocal": "cmd",
     "topicAddress": "batperc=`acpi -b | awk '{print $4}' | replace '%,' ''`; test \"$batperc\" -le 27 && echo $batperc",
-    "title": "Battery low detected 27",
+    "rName": "Battery low detected 27",
     "valType": "percent bar",
     "wrapType": "toast",
     "liveSes": false,

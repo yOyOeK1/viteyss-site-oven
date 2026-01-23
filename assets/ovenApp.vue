@@ -11,7 +11,7 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
 </OvGroup>
 
 <OvGroup
-    v-if="0"
+    v-if="1"
     gtitle="Exec on local" >
 
     <button 
@@ -46,7 +46,7 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
 
 
 <OvGroup
-    gtitle="Exec about host" >
+    gtitle="## Exec about host" >
     
     |
 
@@ -135,7 +135,7 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="Tools - dev 1" >
+    gtitle="## Tools - dev 1" >
 
     <button 
         title="subscribe to all topics at mqtt"
@@ -152,7 +152,7 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="Subscribe" >
+    gtitle="## Subscribe" >
     
     <button 
         title="e01Mux time left to switch ..."
@@ -173,7 +173,7 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="### Oven - Recipes Books">
+    gtitle="Oven - Recipes Books">
 
     <div v-if="oven.dir == undefined">dir data not loaded ...</div>
     <div v-else>
@@ -188,6 +188,19 @@ pennding now:</pre>
 </OvGroup>
 
 
+
+
+
+<OvGroup
+    gtitle="# Log">
+    <div v-for="w, wIn in oven.logs.reverse()" >
+
+<pre># [ {{ oven.logs.length-wIn }} ] {{ w.title }} [ {{ w.entryDate }} ] 
+<small>{{w.msg}}</small></pre>
+
+    </div>
+
+</OvGroup>
 
 
    
@@ -232,62 +245,27 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="### Baking recipe">
+    gtitle="Baking recipe">
 
-    protocal:<!-- <br></br>
-    <input type="text" v-model="recipeNow.mediumProtocal"></input>-->
-    <select v-model="recipeNow.mediumProtocal">
-        <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
-            [ {{ pci}} ]: {{ procal }}
-        </option>
-    </select>    
-    
-
-    <div v-if="recipeNow.mediumProtocal == 'mqtt'">
-        topic adres:
-        <input type="text" v-model="recipeNow.topicAddress"></input><br></br>
-    </div>
-    <div  v-else-if="recipeNow.mediumProtocal == 'cmd'">
-        command:
-        <select @change="recipeNow.topicAddress = $event.target.value">
-            <option value="0">- - -</option>
-            <option v-for="cmdH,cmdI in oven.cmdHistory"
-                :value="cmdH"
-                >
-                [ {{ cmdI }} ]: {{ cmdH }}
-            </option>
-        
-        
-        </select>
-    </div>
+    ## <input type="text" v-model="recipeNow.rName"
+        placeholder="Name of this recipy"
+        ></input><br></br>
 
 
-
-    title:<br></br>
-    <input type="text" v-model="recipeNow.title"></input><br></br>
-
-    type of value:<!--<br></br>
-    <input type="text" v-model="recipeNow.valType"></input>-->
-    <select v-model="recipeNow.valType">
-        <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
-            [ {{ vti }} ]: {{ valtyp }}
-        </option>
-    </select><br></br>
-
-    msg wrapper:<!--<br></br>
-    <input type="text" v-model="recipeNow.wrapType"></input>-->
-    <select v-model="recipeNow.wrapType">
-        <option v-for="wratyp, wti in oven.opts.wrapType" :value="wratyp">
-            [ {{ wti }} ]: {{ wratyp }}
-        </option>
-    </select><br></br>
-
-    * <input type="checkbox" v-model="recipeNow.liveSes"
-    id="recLivSes"></input>
-    <label for="recLivSes"
+    * <input type="checkbox" v-model="recipeNow.autoStart"
+        id="recreconAutoStart"></input>
+    <label for="recreconAutoStart"
         style="display: inline;">
-        live sesion
-    </label><br></br>
+        auto start TODO
+    </label><br>
+
+    
+    * <input type="checkbox" v-model="recipeNow.setENV"
+        id="recreconSetENV"></input>
+    <label for="recreconSetENV"
+        style="display: inline;">
+        as ENV variable TODO
+    </label><br>
 
     * <input type="checkbox" v-model="recipeNow.sharedSession"
     id="recShaSel"></input>
@@ -302,6 +280,66 @@ pennding now:</pre>
         style="display: inline;">
         kill after disconnect
     </label><br>
+
+    <br></br>
+    ## ingreadience
+
+
+    
+
+    * protocal:<!-- <br></br>
+    <input type="text" v-model="recipeNow.mediumProtocal"></input>-->
+    <select v-model="recipeNow.mediumProtocal">
+        <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
+            [ {{ pci}} ]: {{ procal }}
+        </option>
+    </select>    
+    
+
+    <div v-if="recipeNow.mediumProtocal == 'mqtt'">
+        - topic adres:
+        <input type="text" v-model="recipeNow.topicAddress"></input><br></br>
+    </div>
+    <div  v-else-if="recipeNow.mediumProtocal == 'cmd'">
+        - command:
+        <select @change="recipeNow.topicAddress = $event.target.value">
+            <option value="0">- - -</option>
+            <option v-for="cmdH,cmdI in oven.cmdHistory"
+                :value="cmdH"
+                >
+                [ {{ cmdI }} ]: {{ cmdH }}
+            </option>
+        
+        
+        </select>
+    </div>
+
+
+
+    type of value:<!--<br></br>
+    <input type="text" v-model="recipeNow.valType"></input>-->
+    <select v-model="recipeNow.valType">
+        <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
+            [ {{ vti }} ]: {{ valtyp }}
+        </option>
+    </select><br></br>
+
+    * wrapper it in:<!--<br></br>
+    <input type="text" v-model="recipeNow.wrapType"></input>-->
+    <select v-model="recipeNow.wrapType">
+        <option v-for="wratyp, wti in oven.opts.wrapType" :value="wratyp">
+            [ {{ wti }} ]: {{ wratyp }}
+        </option>
+    </select><br></br>
+
+    * <input type="checkbox" v-model="recipeNow.liveSes"
+    id="recLivSes"></input>
+    <label for="recLivSes"
+        style="display: inline;">
+        live sesion
+    </label><br></br>
+
+    
 
 
 
@@ -320,15 +358,7 @@ pennding now:</pre>
 
 
 
-<OvGroup
-    gtitle="### log">
-    <div v-for="w, wIn in oven.logs.reverse()" >
-        # log - entryDate [ {{ w.entryDate }} ]
-        <div v-html="w.msg"></div>
-    </div>
-
-</OvGroup>
-
+<br><br><br><br>
 
 </div>
 </template>
@@ -336,7 +366,7 @@ pennding now:</pre>
 
 <script>
 
-console.log('[oven] inclide. ...');
+
 import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
 import OvDir from './ovDir.vue';
@@ -361,18 +391,7 @@ data(){
 
     return {
 
-        recipeNow:{
-            mediumProtocal:'cmd', 
-            topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
-            title: 't01', 
-            valType: 'raw',
-            wrapType: 'toast',
-            liveSes: false,
-            intervalEverySec: 0,
-            iterator: -1,
-            sharedSession:true,
-            onlyWhenImOnline:false,
-        },
+        
 
         iterators: [],
 
@@ -398,23 +417,42 @@ data(){
             ],
             
             
+            widgets:[
+                
+            ],
 
             opts:{
                 mediumProtocal: [ 'mqtt', 
                     'cmd' ], 
                 topicAddress: [], 
-                title: [], 
+                //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
                 valType: [ 'raw', 'secLeft', 'percent', 'percent bar' ],
                 wrapType: [ 'toast',  'terminal', 'log', 
                 'widget',
                 ],
                 liveSes: [ true, false ],
+
             },
             
-            widgets:[
-                
-            ],
             
+        },
+
+        recipeNow:{
+            autoStatr: false,   // TODO
+            //hidden: false,      // TODO no .rName - cia 
+            setENV: false,      // TODO so result set ENV of session / client see 
+
+            mediumProtocal:'cmd', 
+            topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
+            rName: 't01', 
+            valType: 'raw',
+            wrapType: 'toast',
+            liveSes: false,
+            intervalEverySec: 0,
+            
+            iterator: -1,
+            sharedSession: true,
+            onlyWhenImOnline: false,
         },
         
     
@@ -635,8 +673,10 @@ methods:{
     },
 
 
-    msgWrapInLog( msg ){ 
-        this.oven.logs.push( {entryDate: Date.now(), msg } );
+    msgWrapInLog( logObj ){ 
+        console.log(`[oven] wrap in logObj`,logObj);
+        this.oven.logs.push( logObj );
+        //{entryDate: Date.now(), title, msg }
 
     },
 
@@ -646,6 +686,8 @@ methods:{
             this.msgWrapInToast( msg );
 
         }else if( wrapType == 'log' ){
+            // msg - as msgObj
+            console.log('[oven wrap in type log] msg typeof [ '+(typeof msg )+' ] \n msg ['+msg+']',);
             this.msgWrapInLog( msg );
 
         }else if( wrapType == 'widget' ){
@@ -730,12 +772,12 @@ methods:{
 
     onProbeSelectorFrom( recipe, targetData = undefined ){
 
-        console.log(`[oven] on probe selector - recipe \n`,JSON.stringify( recipe, null, 4));
+        console.log(`[oven] on probe selector - \n\trecipe \n`,JSON.stringify( recipe, null, 4),'\n\n\ttargetData: \n', JSON.stringify( targetData, null, 4 ) );
 
         let postProcessCmd = this.makeHook( 
             recipe.mediumProtocal, 
             recipe.topicAddress, 
-            recipe.title, 
+            recipe.rName, 
             recipe.valType, 
             recipe.wrapType,
             targetData
@@ -795,11 +837,12 @@ methods:{
 
         
         let postProcess = ( chunkNo, resToProcess ) => {
-            console.log('[oven] -> postprocess have valTypes ',JSON.stringify(this.oven.opts.valType));
+            //console.log('[oven] -> postprocess have valTypes ',JSON.stringify(this.oven.opts.valType));
 
-            if( valType == 'raw' ){
-                //console.log('[oven 1111RAW] resToProcess',resToProcess);
-                this.msgWrapInType( `${title}: ( raw ): ${resToProcess}`, wrapType, targetData );
+            if( wrapType == 'log' ){
+                console.log('[oven 1111RAW]\n\tresToProcess:\n',( typeof resToProcess),'\n\tresToProcess:\n',resToProcess);
+                //this.msgWrapInType( `${title}: ( raw2 ): ${resToProcess}`, wrapType, targetData );
+                this.msgWrapInType( {entryDate: Date.now(), title, msg:resToProcess }, wrapType, targetData ); // as raw do msg as logObj
            
             }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
 
