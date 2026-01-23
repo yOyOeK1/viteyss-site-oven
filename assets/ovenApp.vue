@@ -10,43 +10,9 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     abc <b>html</b>
 </OvGroup>
 
-<OvGroup
-    v-if="1"
-    gtitle="Exec on local" >
-
-    <button 
-        title="Home - Disk Space information"
-        @click="onOvenCompact( 'disk space' )"><i class="fa-regular fa-hard-drive"></i></button>
-    
-    |
-    
-    <span title="cpu's on off cores">
-        <i class="fa-solid fa-microchip"></i>
-            [
-            <input type="checkbox" value="0" checked 
-                @change="console.log('click'+$event.target.checked);
-                    onCmdStrTocmdResConole( $event.target.checked ? 
-                        'sudo /home/yoyo/bin/cpusOff.sh 1' : 
-                        'sudo /home/yoyo/bin/cpusOff.sh 0'
-                        );
-                    " 
-                />
-            | 
-            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 0` )">0</a> |
-            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 1` )">1</a>]
-    </span> 
-    
-    |
-    
-    
-    
-    
-</OvGroup>
-
-
 
 <OvGroup
-    gtitle="## Exec about host" >
+    gtitle="Exec about host" >
     
     |
 
@@ -132,6 +98,40 @@ pennding now:</pre>
 
 
 
+<OvGroup
+    gtitle="## Exec on local" >
+
+    |
+
+    <button 
+        title="Home - Disk Space information"
+        @click="onOvenCompact( 'disk space' )"><i class="fa-regular fa-hard-drive"></i></button>
+    
+    |
+    
+    <span title="cpu's on off cores">
+        <i class="fa-solid fa-microchip"></i>
+            [
+            <input type="checkbox" value="0" checked 
+                @change="console.log('click'+$event.target.checked);
+                    onCmdStrTocmdResConole( $event.target.checked ? 
+                        'sudo /home/yoyo/bin/cpusOff.sh 1' : 
+                        'sudo /home/yoyo/bin/cpusOff.sh 0'
+                        );
+                    " 
+                />
+            | 
+            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 0` )">0</a> |
+            <a @click="onCmdStrTocmdResConole( `sudo /home/yoyo/bin/cpusOff.sh 1` )">1</a>]
+    </span> 
+    
+    |
+    
+    
+</OvGroup>
+
+
+
 
 
 <OvGroup
@@ -192,7 +192,7 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="# Log">
+    gtitle="Log">
     <div v-for="w, wIn in oven.logs.reverse()" >
 
 <pre># [ {{ oven.logs.length-wIn }} ] {{ w.title }} [ {{ w.entryDate }} ] 
@@ -224,6 +224,7 @@ pennding now:</pre>
         ><i class="fa-solid fa-heart-circle-plus"></i></button>
 
     <input type="text" @change="onChangeInput_toCmd" ref="cmdInputRef"
+        placeholder="#$ echo 'hello world';"
         style="min-width: 75%;"></input><br></br>
     <select @change="$refs.cmdInputRef.value = $event.target.value;$refs.cmdInputRef.focus();"
         style="min-width: 90%;">
@@ -240,15 +241,12 @@ pennding now:</pre>
 
 
 
-<div>status ... oven</div>
-<div>---</div>
-
 
 <OvGroup
     gtitle="Baking recipe">
 
     ## <input type="text" v-model="recipeNow.rName"
-        placeholder="Name of this recipy"
+        placeholder="Recipe name"
         ></input><br></br>
 
 
@@ -352,9 +350,27 @@ pennding now:</pre>
 
     <hr></hr>
     <button @click="onProbeSelectorFrom( recipeNow )">bake recepe</button>
+    TODO523 <!-- shoud show exit code of test ?--> 
+    
+    
+    
+    
+    <div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">
+        <select v-model="recipeNow.saveChannelNo" 
+            title="Save is free channel"
+            >
+            <option value="-1">- - -</option>
+            <option v-for="ch in freeChannels"
+                :value="ch">ch [ {{ch}} ]}</option>
+        </select>
+        <button @click="onSaveSelectorFrom()">save recepe</button>
+    </div>
 
 </OvGroup>
 
+
+<div>status ... oven</div>
+<div>---</div>
 
 
 
@@ -394,6 +410,8 @@ data(){
         
 
         iterators: [],
+
+        freeChannels: [],
 
         oven:{
             working: true,
@@ -453,6 +471,9 @@ data(){
             iterator: -1,
             sharedSession: true,
             onlyWhenImOnline: false,
+            
+            saveChannelNo: -1,
+            
         },
         
     
@@ -462,6 +483,8 @@ data(){
 methods:{
 
     // dir CookBook
+
+    
 
     getChannelFromNo( adressUrl, chNo ){
         return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
@@ -647,12 +670,30 @@ methods:{
 
     },
 
+    getChannelsFreeToArray( jdir ){
+        let tr = [];
+        console.log('[oven] ch get free channels list ...',jdir[ this.oven.adressUrl ]['layout']);
+        
+        let chnow = jdir[ this.oven.adressUrl ]['layout']['channels'];
+        for(let ci=0,cc=chnow.length; ci<cc; ci++ ){
+            if( !( 'rName' in chnow[ ci ] ) ){
+                console.log('[oven] ch '+ci+' ... ', chnow[ ci ] );
+            
+                tr.push( ci ); 
+            }
+        }
+        
+        this.freeChannels = tr;
+    },
+
+
     onQeryOvenDirUpdate( adressUrl = ''){
         this.onDoFetch( '/apis/oven/dirUpdate' ,{
             'onReady':(r)=>{
-                let j = JSON.parse( r );
-                console.log('[oven] QOvenDirUpdate result .... ', JSON.stringify( j ,null,4) );
-                this.oven.dir = j;
+                let jdir = JSON.parse( r );
+                console.log('[oven] QOvenDirUpdate result .... ', JSON.stringify( jdir ,null,4) );
+                this.oven.dir = jdir;
+                this.getChannelsFreeToArray( jdir );
                 } 
             });
     },
@@ -760,19 +801,72 @@ methods:{
 
                 </div>`;
                     //afterShown: function () {
-                        
+                
+        }else if( valType == 'raw' ){
+            return data;
 
         }else{
                 console.log('EE dataWrapType Nan ',valType);
         }
     },
 
+    onSaveSelectorFrom( recipe ){
 
+        // get target channel slot
+        if( this.recipeNow.saveChannelNo == -1 ){
+            $.toast('EE select first <b>free channel</b>');
+            return -1;
+        }
+        
+        
+        // colect stuff to str msg
+        let msg = JSON.stringify( this.recipeNow );
+                
+        // build bash cmd to do the thing...
+        let cmd = [`echo "# on Save `,
+            `# recipe          [ ${this.recipeNow.rName} ]`,
+            `# to channel No    [ ${this.recipeNow.saveChannelNo} ]`,
+            `# path             [ ${this.oven.adressUrl} ]`,
+            
+            `#"`,
+            '',
+            'echo "## ITS OK ##',
+            '# update oven directory !! ',
+            '#',
+            '# new recipe in CookBook ---- DONE"',
+        
+            ].join('\n');     
+        
+        
+        
+        
+        
+        // send data to api
+        
+        let postProcessCmd = this.makeHook( 'cmd', cmd, 'Save new recipe', 'raw', 'log' );
+        let res = this.onOvenCompact_full( 'nooo custom', 
+            postProcessCmd.cmd, 
+            postProcessCmd.postProcess, 
+            false 
+        );
+        
+        
+        // say haw was it 
+        
+        
+        
+        // update oven dir if all ok
+
+    },
    
 
     onProbeSelectorFrom( recipe, targetData = undefined ){
 
-        console.log(`[oven] on probe selector - \n\trecipe \n`,JSON.stringify( recipe, null, 4),'\n\n\ttargetData: \n', JSON.stringify( targetData, null, 4 ) );
+    
+        console.log(`[oven] on probe selector - \n\trecipe \n`,
+            JSON.stringify( recipe, null, 4),
+            '\n\n\ttargetData: \n', 
+            targetData );
 
         let postProcessCmd = this.makeHook( 
             recipe.mediumProtocal, 
@@ -822,7 +916,7 @@ methods:{
         
         let cmd = undefined;
         //let msg = undefined;
-        let mRes = undefined;
+        
 
         if( mediumProtocal == 'mqtt' )
             cmd = `mosquitto_sub -t '${topicAddress}' -h 'hu' -p 10883 -V mqttv311`;
@@ -846,13 +940,13 @@ methods:{
            
             }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
 
-                console.log('[oven 6789 - '+valType+'] resToProcess ->',r);
                 resToProcess.forEach( r => {
                     if( r ){
                         try{
-                            mRes = parseInt(r);
+                            let msgToSend = this.dataWrapType( '', r, valType );
+                            console.log('[oven 6789 - '+valType+'] resToProcess ->',r,"\n\t msg to send\n", msgToSend);
                             this.msgWrapInType( 
-                                `${title}: ( ${valType} )<br>${ this.dataWrapType( '', mRes, valType ) }`, 
+                                `${title}: ( ${valType} ) <br>${ msgToSend }`, 
                                 wrapType, targetData 
                             );
                         } catch(e){

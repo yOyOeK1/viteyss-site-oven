@@ -1,10 +1,11 @@
 <template>
 
 <div :style="`
-    border: solid ${ isDepth > 1 ? '#dcb ' : 'gray' } 2px; 
+    border: solid ${ isDepth > 4 ? '#dcb ' : 'gray' } 2px; 
     border-radius: 7px;
     margin: 5px;
     margin-left:10px;
+    margin-bottom:6px;
     padding: 1px;
     `+( isDepth > 1 ? 
         'display:inline-block; background-color:rgb(234, 234, 234);' 
@@ -17,7 +18,7 @@
     
     {{ isDepth }} ] 
     -->
-    <div v-if="isDepth > 1"
+    <div 
         style="font-size:75%; margin-top:-10px;
         
         border: solid 2px #9977aa;
@@ -29,12 +30,13 @@
         padding-right:20px;
 
         ">
-        {{ gtitle }}<br>
+        <span v-if="isDepth > 2">[{{ isDepth }}]{{ gtitle }}<br></span>
+        <span v-else>
+            <b>[{{ isDepth }}]# {{ gtitle }}</b><br>    
+        </span>
+
     </div>
 
-    <span v-else>
-        <b># {{ gtitle }}</b><br>    
-    </span>
     
     <slot></slot>
 </div>
