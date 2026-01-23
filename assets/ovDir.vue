@@ -1,14 +1,24 @@
 <template>
 
 <pre>
-title:      [ {{ dirNow[ adressUrl ]['layout']['title'] }} ]
+title:      [ {{ dir[ adressUrl ]['layout']['title'] }} ]
 dir:        [ {{  adressUrl }} ]
-subs: <span v-for="sDir,sDiri in dirNow[ adressUrl ]['layout']['dirList']">[{{ sDiri}}]:{{sDir}} </span>
-channels:   [ {{ dirNow[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dirNow[ adressUrl ]['layout']['jIn']['channels'] }} ]
+subs: <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']">[{{ sDiri}}]:{{sDir}} </span>
+channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dir[ adressUrl ]['layout']['jIn']['channels'] }} ]
 </pre>
 
 
-<div v-for="ch,chi in dirNow[ adressUrl ]['layout']['channels']">
+<div v-for="ch,chi in dir[ adressUrl ]['layout']['channels']"
+
+    :style="{
+        'font-family':'Hack',
+        'font-size': '75%',
+        padding:'3px',
+        margin:'1px',
+        'border-radius': '6px',
+        border:'1px solid #ccaadd'
+        }"
+    >
 
     <div v-if=" Object.keys(ch).length == 0 ">
         [ {{ chi }} ] 
@@ -17,13 +27,12 @@ channels:   [ {{ dirNow[ adressUrl ]['layout']['channels'].filter( c=>c).length 
 
     <div v-else>
         [ {{ chi }} ] 
-
         <a 
             title="Bake this recipe ..."
             style="color:cadetblue;"
-            @click="$emit('dir-channel-click', ch )"><i class="fa-solid fa-arrow-up-right-from-square"></i>
+            @click="onChannelAction( chi, 'click' )"><i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a> 
-        - {{ ch['title'] }}
+        - {{ ch['title'] }}<pre v-if="dir[ adressUrl ]['layout']['channels'][ chi ]['sp']" v-html="JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['sp'].result,null,4)"></pre>
         
     </div>
 
@@ -33,10 +42,19 @@ channels:   [ {{ dirNow[ adressUrl ]['layout']['channels'].filter( c=>c).length 
 </template>
 <script>
 export default{
+props: [ 'dir', 'adressUrl' ],
+emits: [ 'dir-channel-click' ],
+methods:{
+    onChannelAction( chNo, action = 'click' ){
+        if( action == 'click' ){
+            //let ch =  dir[ adressUrl ]['layout']['channels'][ chNo ];            
+            this.$emit('dir-channel-click', { action, 'adressUrl':this.adressUrl, chNo } );
+        }else{
+            TODO
+        }
+    }
 
-props: [ 'dirNow', 'adressUrl' ],
-emits: [ 'dir-channel-click' ]
-
+}
 
 }
 

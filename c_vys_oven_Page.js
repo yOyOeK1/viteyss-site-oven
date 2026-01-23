@@ -26,8 +26,10 @@ class s_vysovenPage{
   
   getHtml = () => {
 
-    return `<b>${this.getName}</b><br>
-    <img src="${this.homeUrl}assets/ico_mafinOven_64_64.png"><br><!--
+    return `<img src="${this.homeUrl}assets/ico_mafinOven_32_32.png"
+      alt="Oven - logo">
+    <b>${this.getName}</b>
+    <!--
     This is a npm package<br>
     viteyss-site-oven<br>
     <pre>
@@ -37,7 +39,7 @@ class s_vysovenPage{
 
     More ditails in \`./site.json\`
     </pre>-->
-    <div id="ovenApp" >ovenApp holder</div>
+    <div id="ovenApp" style="display:inline;">ovenApp holder</div>
     `;
 
   }

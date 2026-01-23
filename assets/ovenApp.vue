@@ -1,8 +1,8 @@
 <template >
-<div class="smallBt">
-
-
 Working: {{ oven.working  }} ( {{ oven.runNo }} )
+<div class="smallBt" style="color:#000000;">
+
+
 
 <OvGroup v-if="0"
     gtitle="abc gTitle test"
@@ -10,8 +10,8 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     abc <b>html</b>
 </OvGroup>
 
-
 <OvGroup
+    v-if="0"
     gtitle="Exec on local" >
 
     <button 
@@ -43,12 +43,103 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     
 </OvGroup>
 
+
+
+<OvGroup
+    gtitle="Exec about host" >
+    
+    |
+
+    <a @click="onQeryOvenDir()">
+        QOvenDir</a>
+
+    |
+
+    <a @click="onQeryOvenDirUpdate()"
+        title="Query to update home dir CookBook ~/.viteyss/oven">
+        QODir</a>
+        
+
+    |
+    
+    <a @click="onQeryTasksNow()">
+        QTaskList</a>
+        
+    |  <a 
+        title="ps [ PID's ] of subprocess on host"
+        @click="onCmdStrTocmdResConole( `ps ${oven.spList.flatMap( d => d.sp.pid ).join(' ')}` )">
+        ?</a> 
+    |
+   
+    
+</OvGroup>
+
+
+
+    
+<OvGroup
+    gtitle="QTaskList - results"
+    >
+    
+    <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
+    <div v-if="oven.tUpdate != undefined">
+        <OvGroup
+            gtitle="#### fast - status">            
+            <pre>{{ new Date(oven.tUpdate) }}
+tasks total:    [ {{ oven.spList.length }} ] running [ {{ oven.spList.filter( sp => sp.tEnd == undefined ).length }} ]
+errCode:        [ {{ oven.spList.filter( sp => sp.exitCode != 0 ).length }} ]
+pennding now:</pre>
+        </OvGroup>
+
+    </div>
+
+    
+    
+    <div v-if="oven.spList == undefined">not loaded ...</div>
+    
+    <div v-else v-for="spi,sNo in oven.spList.filter( spi => spi.tEnd == undefined )">
+        [TODOisRunningNow] | 
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'KILL' )"
+            title="kill process"
+            >k</a>] 
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'STOP' )"
+            title="pause"
+            >p</a>]
+        [<a 
+            @click="oven_onSendKill( spi.sp.pid, 'CONT' )"
+            title="resume if pause"
+            >r</a>]
+        [<a 
+            title="set low nice"
+            >n-</a>] 
+        [<a 
+            title="set high nice"
+            >n+</a>]
+        |
+        [{{ spi.runNo }}] pid: [{{spi.sp.pid }}]
+        |
+
+        {{ parseInt(Date.now()- spi.tStart)/1000.00 }} sec.
+        |
+        {{ spi.ident }}
+        <small>{{spi.sp.spawnargs[2]}}</small>
+    </div>
+</OvGroup>
+
+
+
+
+
+
+
 <OvGroup
     gtitle="Tools - dev 1" >
 
     <button 
         title="subscribe to all topics at mqtt"
-        @click="makeHook( 'mqtt', '#', 'all topics', 'raw', 'widget' )"># all topiks</button> 
+        @click="makeHook( 'mqtt', '#', 'all topics', 'raw', 'log' )"># all topiks</button> 
     
     |
 
@@ -79,34 +170,7 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     
 
 
-<OvGroup
-    gtitle="Exec about host" >
-    
-    |
 
-    <a @click="onQeryOvenDir()">
-        QOvenDir</a>
-
-    |
-
-    <a @click="onQeryOvenDirUpdate()"
-        title="Query to update home dir CookBook ~/.viteyss/oven">
-        QODir</a>
-        
-
-    |
-    
-    <a @click="onQeryTasksNow()">
-        QTaskList</a>
-        
-    |  <a 
-        title="ps [ PID's ] of subprocess on host"
-        @click="onCmdStrTocmdResConole( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">
-        ?</a> 
-    |
-   
-    
-</OvGroup>
 
 <OvGroup
     gtitle="### Oven - Recipes Books">
@@ -114,8 +178,8 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     <div v-if="oven.dir == undefined">dir data not loaded ...</div>
     <div v-else>
         <OvDir
-            :dirNow="oven.dir" 
-            :adressUrl="oven.dirNow"
+            :dir="oven.dir" 
+            :adressUrl="oven.adressUrl"
             @dir-channel-click="onEmit_dirChannelClick"
             ></OvDir>
 
@@ -124,58 +188,6 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
 </OvGroup>
 
 
-
-    
-<OvGroup
-    gtitle="QTaskList - results"
-    >
-    
-    <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
-    <div v-if="oven.tUpdate != undefined">
-        <OvGroup
-            gtitle="#### fast - status">            
-            <pre>{{ new Date(oven.tUpdate) }}
-tasks total:    [ {{ oven.data.length }} ] running [ {{ oven.data.filter( sp => sp.tEnd == undefined ).length }} ]
-errCode:        [ {{ oven.data.filter( sp => sp.exitCode != 0 ).length }} ]
-pennding now:</pre>
-        </OvGroup>
-
-    </div>
-
-    
-    
-    <div v-if="oven.data == undefined">not loaded ...</div>
-    
-    <div v-else v-for="spi,sNo in oven.data.filter( spi => spi.tEnd == undefined )">
-        [TODOisRunningNow] | 
-        [<a 
-            @click="oven_onSendKill( spi.sp.pid, 'KILL' )"
-            title="kill process"
-            >k</a>] 
-        [<a 
-            @click="oven_onSendKill( spi.sp.pid, 'STOP' )"
-            title="pause"
-            >p</a>]
-        [<a 
-            @click="oven_onSendKill( spi.sp.pid, 'CONT' )"
-            title="resume if pause"
-            >r</a>]
-        [<a 
-            title="set low nice"
-            >n-</a>] 
-        [<a 
-            title="set high nice"
-            >n+</a>]
-        |
-        [{{ spi.runNo }}] pid: [{{spi.sp.pid }}]
-        |
-
-        {{ parseInt(Date.now()- spi.tStart)/1000.00 }} sec.
-        |
-        {{ spi.ident }}
-        <small>{{spi.sp.spawnargs[2]}}</small>
-    </div>
-</OvGroup>
 
 
    
@@ -301,19 +313,21 @@ pennding now:</pre>
 
 
     <hr></hr>
-    <button @click="onProbeSelector()">bake recepe</button>
+    <button @click="onProbeSelectorFrom( recipeNow )">bake recepe</button>
 
 </OvGroup>
 
 
 
 
-widgets:
-<div v-for="w, wIn in oven.widgets.reverse()" >
-    widget{{ wIn }}---
-    <div v-html="w"></div>
-</div>
+<OvGroup
+    gtitle="### log">
+    <div v-for="w, wIn in oven.logs.reverse()" >
+        # log - entryDate [ {{ w.entryDate }} ]
+        <div v-html="w.msg"></div>
+    </div>
 
+</OvGroup>
 
 
 </div>
@@ -336,7 +350,7 @@ components:{
 },
 mounted(){
     setTimeout(()=>{
-
+        this.onQeryOvenDirUpdate();
     },500);
     console.log('[oven] mounted. ...');
 },
@@ -366,12 +380,14 @@ data(){
             working: true,
             runNo: 0,
             tUpdate: undefined,
-            data: undefined,
+            spList: undefined,
             dir: undefined,
-            dirNow: '',
+            adressUrl: '',
             results:[],
             isWatching: false,
             watchingIter: -1,
+            logs: [],
+            logsMax: 10,
             
             
             cmdHistory: [
@@ -389,8 +405,9 @@ data(){
                 topicAddress: [], 
                 title: [], 
                 valType: [ 'raw', 'secLeft', 'percent', 'percent bar' ],
-                wrapType: [ 'toast', 'widget', 'terminal',
-                    'log' ],
+                wrapType: [ 'toast',  'terminal', 'log', 
+                'widget',
+                ],
                 liveSes: [ true, false ],
             },
             
@@ -408,9 +425,27 @@ methods:{
 
     // dir CookBook
 
+    getChannelFromNo( adressUrl, chNo ){
+        return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
+    },
+
+
     onEmit_dirChannelClick( data ){
         console.log('[dirCh_click] data ',data);
-        this.onProbeSelectorFrom( data );
+
+        if( data.action == 'click' ){
+
+            let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
+
+            if( !('sp' in chObj ) ) chObj['sp'] = {
+                tStart: 0, tPing:0, tEnd: 0, exitCode:-1, statusNow:'', resCount:0, result:[]
+            };
+
+            this.onProbeSelectorFrom( chObj, data );
+
+        }else{
+            TODO
+        }
     },
 
     // dir CookBook
@@ -567,7 +602,7 @@ methods:{
                     //JSON.stringify( j ,null,4)
                 );
                 this.oven.tUpdate = Date.now();
-                this.oven.data = j;
+                this.oven.spList = j;
 
                 } 
             });
@@ -599,25 +634,46 @@ methods:{
         $.toast( msg );
     },
 
-    msgWrapInWidget( msg ){
-        this.oven.widgets.push( msg );
+
+    msgWrapInLog( msg ){ 
+        this.oven.logs.push( {entryDate: Date.now(), msg } );
+
     },
 
-    msgWrapInType( msg, wrapType ){
+
+    msgWrapInType( msg, wrapType, targetData = undefined ){
         if( wrapType == 'toast' ){
             this.msgWrapInToast( msg );
+
+        }else if( wrapType == 'log' ){
+            this.msgWrapInLog( msg );
+
         }else if( wrapType == 'widget' ){
-            this.msgWrapInWidget( msg );
+            if( targetData == undefined )
+                this.msgWrapInLog( msg );
+            
+
+        
 
         }else if( wrapType == 'terminal' ){
             console.log(`[oven] msg wrap go to terminal ...`, msg );
-
-        
 
         }else{
             console.log('[oven] ee make hook msg wraper nan ',wrapType);
             return 1;
         }
+
+        if( targetData == undefined )
+            this.msgWrapInLog( msg );
+        else{
+            console.log('[over] wrap update channel]');
+            let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
+            chObj['tPing'] = Date.now();
+            chObj['statusNow'] = 'running';
+            chObj['result'] = msg;
+            
+        }
+
     },
 
     dataWrapType( title, data, valType ){
@@ -670,17 +726,9 @@ methods:{
     },
 
 
-    makeMqttHook(topicAddress, title, valType ){
-        return this.makeHook( 'mqtt', topicAddress, title, valType, 'toast' );
-        //return this.makeHook( 'mqtt', topicAddress, title, valType, 'widget' );
-    },
+   
 
-
-    onProbeSelector(){
-        this.onProbeSelectorFrom( this.recipeNow );
-    },
-
-    onProbeSelectorFrom( recipe ){
+    onProbeSelectorFrom( recipe, targetData = undefined ){
 
         console.log(`[oven] on probe selector - recipe \n`,JSON.stringify( recipe, null, 4));
 
@@ -689,10 +737,19 @@ methods:{
             recipe.topicAddress, 
             recipe.title, 
             recipe.valType, 
-            recipe.wrapType
+            recipe.wrapType,
+            targetData
         );
      
         
+        if( targetData != undefined ){
+            let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
+            chObj['tStart'] = Date.now();
+            chObj['statusNow'] = 'started';
+            
+        }
+
+
         
         if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
             this.iterators.push(
@@ -716,9 +773,10 @@ methods:{
             postProcessCmd.postProcess, 
             recipe.liveSes 
         );
+
     },
 
-    makeHook( mediumProtocal, topicAddress, title, valType, wrapType ){
+    makeHook( mediumProtocal, topicAddress, title, valType, wrapType, targetData = undefined ){
         
         let cmd = undefined;
         //let msg = undefined;
@@ -726,8 +784,10 @@ methods:{
 
         if( mediumProtocal == 'mqtt' )
             cmd = `mosquitto_sub -t '${topicAddress}' -h 'hu' -p 10883 -V mqttv311`;
+        
         else if( mediumProtocal == 'cmd' )
             cmd = topicAddress;
+        
         else{
             console.log('EE NAN medium protocal ',mediumProtocal);
             return 1;
@@ -739,7 +799,7 @@ methods:{
 
             if( valType == 'raw' ){
                 //console.log('[oven 1111RAW] resToProcess',resToProcess);
-                this.msgWrapInType( `${title}: ( raw ): ${resToProcess}`, wrapType );
+                this.msgWrapInType( `${title}: ( raw ): ${resToProcess}`, wrapType, targetData );
            
             }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
 
@@ -749,7 +809,9 @@ methods:{
                         try{
                             mRes = parseInt(r);
                             this.msgWrapInType( 
-                                `${title}: ( ${valType} )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+                                `${title}: ( ${valType} )<br>${ this.dataWrapType( '', mRes, valType ) }`, 
+                                wrapType, targetData 
+                            );
                         } catch(e){
                             console.log('EE res line to integer no good');
                         }
@@ -814,7 +876,8 @@ methods:{
         let compacts = {
             'e01Mux_left':() => {
                 //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
-                let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
+                //let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
+                let postProcessCmd = this.makeHook( 'mqtt','e01Mux/left', 'e01Mux - left', 'secLeft', 'toast' );
                 return {
                     liveSes: true,
                     cmd: postProcessCmd.cmd,
@@ -823,7 +886,8 @@ methods:{
             },            
             'home_perc':() => {
                 //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
-                let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent' );
+                //let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent' );
+                let postProcessCmd = this.makeHook( 'mqtt', 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent', 'toast' );
                 return {
                     liveSes: true,
                     cmd: postProcessCmd.cmd,
@@ -901,59 +965,7 @@ methods:{
             postProcess = compactObj.postProcess;
         
 
-        }/*else if( compactName == 'e01Mux_left' ){
-            //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
-            liveSes = true;
-            let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
-            cmd = postProcessCmd.cmd;
-            postProcess = postProcessCmd.postProcess;
-        
-        } else if( compactName == 'home_perc' ){
-            //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
-            liveSes = true;
-            let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent' );
-            cmd = postProcessCmd.cmd;
-            postProcess = postProcessCmd.postProcess;
-
-            
-            //let divName = 'abcLeft'+Date.now();
-            //postProcess = ( chunkNo, res ) => {
-            //    let mRes = parseInt(res.split(']')[1]);
-            //    $.toast({
-            //        text:`[${chunkNo}] e01Mux - left: <br><br>${ msToDurationString( mRes ) } sec.<br>`,
-            //    });
-            //}
-
-        }else if( compactName == 'disk space' ){
-            cmd = `df -h $HOME`;
-            liveSes = false;
-            let divName = 'abc'+Date.now();
-            postProcess = ( chunkNo, result ) => {
-                //console.log('[oven]-diskSpace ',result);
-                let rWords = result[2].split(' ');
-                let percInd = rWords.findIndex(o => o.endsWith('%') );
-                let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
-                let gigW = rWords.filter( w => w.length > 2 );
-                let gigAvail =  gigW[ 3 ];
-                $.toast({
-                    text:`Disk space at home: <br><br>${result[2]}<br><div id="${divName}"></div>`,
-                    afterShown: function () {
-                        let justGage2 = new JustGage({
-                            id: divName,
-                            value: percIs,
-                            min: 0,
-                            max: 100,
-                            title: 'Home left: '+gigAvail,
-                            donut: true
-                            });
-                    }
-                });
-                
-               
-            }
-        }*/
-
-
+        }
 
         // final end
         if( cmd != undefined && liveSes == false ){
@@ -1067,9 +1079,9 @@ methods:{
             //watchingIter: -1
             this.oven.watchingIter = setInterval(()=>{
                 let killInter = false;
-                let pendinng = this.oven.data.filter( spi => spi.tEnd == undefined );
+                let pendinng = this.oven.spList.filter( spi => spi.tEnd == undefined );
                 console.log('[oven][watcher] .... ',pendinng.length);
-                if( this.oven.data == undefined ){
+                if( this.oven.spList == undefined ){
                     killInter = true;
                 }else{
                     
