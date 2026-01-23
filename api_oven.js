@@ -3,7 +3,8 @@ import {dirname} from 'node:path'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url';  
-import { cl2, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson } from './libs/ovenHelper.js';
+import { cl2, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj } from './libs/ovenHelper.js';
+import { stderr } from 'node:process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,51 +25,49 @@ class serveroven{
         
         chkCasheDir( undefined, path.join(process.env.HOME, '.viteyss') );
         this.homePath = path.join(process.env.HOME, '.viteyss', 'oven');
-        this.ovedDir = chkCasheDir( undefined, this.homePath );
-        this.ovedCurrent = this.ovenDirToObj(this.ovedDir );
-
-        debugger
+        
+        
         this.spList = [];
+        this.vClients = {};
 
+        this.ovenCurrent = undefined;
+        this.ovenURL = undefined;
+        this.ovenTree = undefined;
+        this.readHomeCookBook();
+    
+        
         //this.mapleafletPath = '/home/iloo/Projects/ilooViteYss/sharelibs/viteyss-site-mapleaflet';
         //this.mapleafletPath = '/home/yoyo/Apps/viteyss-site-mapleaflet';
         
         
     }
-    
+
+    readHomeCookBook=()=>{
+        this.ovenCurrent = ovenDirToObj( this.homePath, __dirname );
+        this.ovenURL = '';
+        this.ovenTree = {};
+        this.ovenTree[ this.ovenURL ] = this.ovenCurrent;       
+
+    }
+
+    handleRequest( args ){
+        let {req, res, server } = args;
+
+        if( String(req.url).startsWith(this.url) ){
+            this.server = server;
+            return this.doIt( req,res );
+
+        }
+
+    }
+
     cl( str ){
         console.log(` apioven     ${this.method}  ${this.url}     `,str);
     }
 
 
 
-    ovenDirToObj( dirList, pathBase = undefined ){
-        if( pathBase == undefined)
-            pathBase = this.homePath;
-        
-        if( dirList.length == 0 ){
-            ovenDirEmpty( this.envMy.dirname ); // adres to src of over for defs
-            this.ovedDir = chkCasheDir( undefined, this.homePath );
-            dirList = this.ovedDir;
-        }
-
-        let layoutR = dirList.findIndex( fName => fName == '0_layout.js' );
-        let layoutName = layoutR == -1 ? {} : JSON.parse( fs.readFileSync( path.join( pathBase, '0_layout.js' ) ).toString() );
-
-        let ovenObj = {
-            'layout': ovenLayoutToObjectFromJson( layoutName, pathBase ),
-            pathBase,
-            baseAddres: pathBase.substring( this.homePath.length )
-        }; 
-
-
-        return ovenObj;
-    }
-
     
-    
-   
-
 
     linesToAppendArray( res, lines, arrayTo ){
         for( let line of `${lines}`.split('\n') ){
@@ -80,13 +79,14 @@ class serveroven{
     }
 
 
-    startBeaking=( req, res, cmdToDo )=>{        
+    startBeaking=( req, res, cmdToDo, recipeStart = undefined )=>{        
         this.runNo++;
         let runNo = `${this.runNo}`;
         res['runNo'] = runNo;
         let clientOnline = 1;        
         this.writeHeadChunke( res );
         
+
         let waitForEndInter = -1;
         let waitForEnd = true;
         let cDir = chkCasheDir( res, this.casheFolder );
@@ -94,7 +94,7 @@ class serveroven{
         let extOk = true;
         
         cl2(res, [
-            ` viteyss-site-oven / ${this.url} ... `,
+            ` viteyss-site-oven / startBeaking - ${this.url} ... `,
             '',
             ' will exec?    [ '+extOk+' ]',
             ' cmd to run: ',
@@ -112,8 +112,12 @@ class serveroven{
             return 0;
         }
 
+        let vClientsOnline = true;
         let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
         //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
+        let vClient = { id: runNo,'online': vClientsOnline, req, res};
+        this.vClients[ runNo ] = vClient;
+
         let spObj = {
             ident: semaforPath,
             'sp': sp,
@@ -125,6 +129,8 @@ class serveroven{
             'exitCode': undefined,
             'stdout': [],
             'stderr': [],
+            recipeStart,
+            'vClients':[ runNo ]
         };
         this.spList.push( spObj );
         //spStatus = 'running ...';
@@ -179,8 +185,12 @@ class serveroven{
 
         
         req.on('close',e=>{
-            this.cl('\n\n['+runNo+'][##] http client left close');
+            this.cl('\n\n['+runNo+'][##] http client left close\n'+
+                '# TODO vClients ... ')
+                ;
             clientOnline = 0;
+            vClientsOnline = false;
+
 
         });
         req.on('error',e=>{
@@ -220,6 +230,24 @@ class serveroven{
         if( sapi.length ==  4 ){
             res.end('4');
         
+        
+
+        // http://localhost:8080/apis/oven/dirUpdate
+        // to update current home dir CookBooks ~/.viteyss/oven from fs
+        }else if( sapi.length ==  1 && sapi[0] == 'dirUpdate'  ){
+            this.writeHeadChunke( res );
+            let tStart = Date.now();
+            this.readHomeCookBook();
+            this.ovenTree['tRebuildHomeCookBook'] = Date.now() - tStart;
+            res.write( JSON.stringify(
+                this.ovenTree
+            ) );
+            res.end('\n');
+            console.log('[oven] -> dirUpdate - CookBook in '+( (Date.now() - tStart)/1000 )+' sec.');
+            return 0;
+
+
+
         // http://localhost:8080/apis/oven/QTaskList
         }else if( sapi.length ==  1 && sapi[0] == 'QTaskList' ){
             this.writeHeadChunke( res );
@@ -229,15 +257,26 @@ class serveroven{
             res.end('\n');
             return 0;
         
+
+        // http://localhost:8080/apis/oven/dir/abc
+        // to get list of current home dir CookBooks ~/.viteyss/oven
+        }else if( sapi.length >=  1 && sapi[0].startsWith('dir')  ){
+            this.writeHeadChunke( res );
+            res.write( JSON.stringify(
+                this.ovenTree
+            ) );
+            res.end('\n');
+            return 0;
+
         // http://localhost:8080/apis/oven/splog0
-        // to get spList [ no ].log
-        
+        // to get spList [ no ].log        
         }else if( sapi.length ==  1 && sapi[0].startsWith( 'splog' ) ){
             let spNo = parseInt( sapi[ 0 ].substring(5) );
             this.writeHeadChunke( res );
-            res.write( JSON.stringify(
-                this.spList[ spNo ].log
-            ) );
+            res.write( JSON.stringify({
+                stdout: this.spList[ spNo ].stdout,
+                stderr: this.spList[ spNo ].stderr
+            }) );
             res.end('\n');
             return 0;
             
@@ -268,18 +307,7 @@ class serveroven{
     }
 
    
-    handleRequest( args ){
-        let {req, res, server } = args;
-
-        if( String(req.url).startsWith(this.url) ){
-            this.server = server;
-            return this.doIt( req,res );
-
-        }
-
-
-
-    }
+   
     
     
     

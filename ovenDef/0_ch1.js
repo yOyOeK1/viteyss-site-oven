@@ -1,11 +1,11 @@
-{
+ {
     "mediumProtocal": "cmd",
     "topicAddress": "echo $(( `date +%s` - 1769016074 ))",
-    "title": "Time since",
+    "title": "Time since - one time",
     "valType": "secLeft",
     "wrapType": "toast",
     "liveSes": false,
-    "intervalEverySec": 30,
+    "intervalEverySec": 0,
     "iterator": -1,
     "sharedSession": true,
     "onlyWhenImOnline": false

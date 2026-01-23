@@ -83,6 +83,18 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     gtitle="Exec about host" >
     
     |
+
+    <a @click="onQeryOvenDir()">
+        QOvenDir</a>
+
+    |
+
+    <a @click="onQeryOvenDirUpdate()"
+        title="Query to update home dir CookBook ~/.viteyss/oven">
+        QODir</a>
+        
+
+    |
     
     <a @click="onQeryTasksNow()">
         QTaskList</a>
@@ -92,14 +104,25 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
         @click="onCmdStrTocmdResConole( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">
         ?</a> 
     |
-    
    
     
-    
-    
-    
-    
 </OvGroup>
+
+<OvGroup
+    gtitle="### Oven - Recipes Books">
+
+    <div v-if="oven.dir == undefined">dir data not loaded ...</div>
+    <div v-else>
+        <OvDir
+            :dirNow="oven.dir" 
+            :adressUrl="oven.dirNow"
+            @dir-channel-click="onEmit_dirChannelClick"
+            ></OvDir>
+
+    </div>
+
+</OvGroup>
+
 
 
     
@@ -192,7 +215,7 @@ pennding now:</pre>
 
 
 
-<div>status ... over</div>
+<div>status ... oven</div>
 <div>---</div>
 
 
@@ -200,21 +223,21 @@ pennding now:</pre>
     gtitle="### Baking recipe">
 
     protocal:<!-- <br></br>
-    <input type="text" v-model="selectonNow.mediumProtocal"></input>-->
-    <select v-model="selectonNow.mediumProtocal">
+    <input type="text" v-model="recipeNow.mediumProtocal"></input>-->
+    <select v-model="recipeNow.mediumProtocal">
         <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
             [ {{ pci}} ]: {{ procal }}
         </option>
     </select>    
     
 
-    <div v-if="selectonNow.mediumProtocal == 'mqtt'">
+    <div v-if="recipeNow.mediumProtocal == 'mqtt'">
         topic adres:
-        <input type="text" v-model="selectonNow.topicAddress"></input><br></br>
+        <input type="text" v-model="recipeNow.topicAddress"></input><br></br>
     </div>
-    <div  v-else-if="selectonNow.mediumProtocal == 'cmd'">
+    <div  v-else-if="recipeNow.mediumProtocal == 'cmd'">
         command:
-        <select @change="selectonNow.topicAddress = $event.target.value">
+        <select @change="recipeNow.topicAddress = $event.target.value">
             <option value="0">- - -</option>
             <option v-for="cmdH,cmdI in oven.cmdHistory"
                 :value="cmdH"
@@ -229,39 +252,39 @@ pennding now:</pre>
 
 
     title:<br></br>
-    <input type="text" v-model="selectonNow.title"></input><br></br>
+    <input type="text" v-model="recipeNow.title"></input><br></br>
 
     type of value:<!--<br></br>
-    <input type="text" v-model="selectonNow.valType"></input>-->
-    <select v-model="selectonNow.valType">
+    <input type="text" v-model="recipeNow.valType"></input>-->
+    <select v-model="recipeNow.valType">
         <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
             [ {{ vti }} ]: {{ valtyp }}
         </option>
     </select><br></br>
 
     msg wrapper:<!--<br></br>
-    <input type="text" v-model="selectonNow.wrapType"></input>-->
-    <select v-model="selectonNow.wrapType">
+    <input type="text" v-model="recipeNow.wrapType"></input>-->
+    <select v-model="recipeNow.wrapType">
         <option v-for="wratyp, wti in oven.opts.wrapType" :value="wratyp">
             [ {{ wti }} ]: {{ wratyp }}
         </option>
     </select><br></br>
 
-    * <input type="checkbox" v-model="selectonNow.liveSes"
+    * <input type="checkbox" v-model="recipeNow.liveSes"
     id="recLivSes"></input>
     <label for="recLivSes"
         style="display: inline;">
         live sesion
     </label><br></br>
 
-    * <input type="checkbox" v-model="selectonNow.sharedSession"
+    * <input type="checkbox" v-model="recipeNow.sharedSession"
     id="recShaSel"></input>
     <label for="recShaSel"
         style="display: inline;">
         shared task
     </label><br></br>
 
-    * <input type="checkbox" v-model="selectonNow.onlyWhenImOnline"
+    * <input type="checkbox" v-model="recipeNow.onlyWhenImOnline"
         id="reconlWheImOn"></input>
     <label for="reconlWheImOn"
         style="display: inline;">
@@ -270,15 +293,15 @@ pennding now:</pre>
 
 
 
-    <div v-if="selectonNow.liveSes == false">
+    <div v-if="recipeNow.liveSes == false">
         so interval then every ( .sec ):<br></br>
-        <input type="number" min="1" max="600" step="1" v-model="selectonNow.intervalEverySec" ><br></br>
+        <input type="number" min="1" max="600" step="1" v-model="recipeNow.intervalEverySec" ><br></br>
         <small>0 - no interval </small>
     </div>
 
 
-
-    <button @click="onProbeSelector()">probe selector</button><hr></hr>
+    <hr></hr>
+    <button @click="onProbeSelector()">bake recepe</button>
 
 </OvGroup>
 
@@ -302,10 +325,14 @@ widgets:
 console.log('[oven] inclide. ...');
 import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
+import OvDir from './ovDir.vue';
+
+
 
 export default{
 components:{
-    'OvGroup': ovGroup
+    'OvGroup': ovGroup,
+    'OvDir': OvDir    
 },
 mounted(){
     setTimeout(()=>{
@@ -320,12 +347,12 @@ data(){
 
     return {
 
-        selectonNow:{
+        recipeNow:{
             mediumProtocal:'cmd', 
             topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
-            title: 'test e01 - time since', 
+            title: 't01', 
             valType: 'raw',
-            wrapType: 'terminal',
+            wrapType: 'toast',
             liveSes: false,
             intervalEverySec: 0,
             iterator: -1,
@@ -340,6 +367,8 @@ data(){
             runNo: 0,
             tUpdate: undefined,
             data: undefined,
+            dir: undefined,
+            dirNow: '',
             results:[],
             isWatching: false,
             watchingIter: -1,
@@ -352,12 +381,14 @@ data(){
                 `acpi -b | awk '{print $4}' | replace '%,' ''`, // # batery local status
             ],
             
+            
+
             opts:{
                 mediumProtocal: [ 'mqtt', 
                     'cmd' ], 
                 topicAddress: [], 
                 title: [], 
-                valType: [ 'raw', 'secLeft', 'percent' ],
+                valType: [ 'raw', 'secLeft', 'percent', 'percent bar' ],
                 wrapType: [ 'toast', 'widget', 'terminal',
                     'log' ],
                 liveSes: [ true, false ],
@@ -374,6 +405,17 @@ data(){
 },
 
 methods:{
+
+    // dir CookBook
+
+    onEmit_dirChannelClick( data ){
+        console.log('[dirCh_click] data ',data);
+        this.onProbeSelectorFrom( data );
+    },
+
+    // dir CookBook
+
+
 
     // oven start
 
@@ -532,6 +574,26 @@ methods:{
 
     },
 
+    onQeryOvenDirUpdate( adressUrl = ''){
+        this.onDoFetch( '/apis/oven/dirUpdate' ,{
+            'onReady':(r)=>{
+                let j = JSON.parse( r );
+                console.log('[oven] QOvenDirUpdate result .... ', JSON.stringify( j ,null,4) );
+                this.oven.dir = j;
+                } 
+            });
+    },
+
+    onQeryOvenDir( adressUrl = ''){
+        this.onDoFetch( '/apis/oven/dir?'+adressUrl ,{
+            'onReady':(r)=>{
+                let j = JSON.parse( r );
+                console.log('[oven] QOvenDir result .... ', JSON.stringify( j ,null,4) );
+                this.oven.dir = j;
+                } 
+            });
+    },
+
 
     msgWrapInToast( msg ){
         $.toast( msg );
@@ -579,6 +641,29 @@ methods:{
                     //afterShown: function () {
                         
 
+        }else if( valType == 'percent bar' ){
+                let divName = 'ooccPerc'+Date.now();
+                
+                let w = parseInt(data);
+                let size = [150,20];
+                return `
+                
+                <b style="">
+                    ${w} %
+                </b>  
+                <div id="${divName}" style="
+                    border: 2px solid black;
+                    width:${size[0]+10}px;
+                    height:${size[1]}px;
+                
+                ">
+                    <div style="border-left:2px solid black;height:${size[1]}px;width:${w}px;background-color: red;display:inline-block;" ></div>
+                    <div style="border-left:2px solid black;height:${size[1]}px;width:${size[0]-w}px;background-color: green;display:inline-block;" ></div>
+
+                </div>`;
+                    //afterShown: function () {
+                        
+
         }else{
                 console.log('EE dataWrapType Nan ',valType);
         }
@@ -590,32 +675,37 @@ methods:{
         //return this.makeHook( 'mqtt', topicAddress, title, valType, 'widget' );
     },
 
-    onProbeSelector(){
 
-        console.log(`[oven] on probe selector - recipe \n`,JSON.stringify( this.selectonNow, null, 4));
+    onProbeSelector(){
+        this.onProbeSelectorFrom( this.recipeNow );
+    },
+
+    onProbeSelectorFrom( recipe ){
+
+        console.log(`[oven] on probe selector - recipe \n`,JSON.stringify( recipe, null, 4));
 
         let postProcessCmd = this.makeHook( 
-            this.selectonNow.mediumProtocal, 
-            this.selectonNow.topicAddress, 
-            this.selectonNow.title, 
-            this.selectonNow.valType, 
-            this.selectonNow.wrapType
+            recipe.mediumProtocal, 
+            recipe.topicAddress, 
+            recipe.title, 
+            recipe.valType, 
+            recipe.wrapType
         );
      
         
         
-        if( this.selectonNow.liveSes == false && this.selectonNow.intervalEverySec != '0' ){
+        if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
             this.iterators.push(
                 setInterval( () => { 
 
                     this.onOvenCompact_full( 'nooo custom', 
                         postProcessCmd.cmd, 
                         postProcessCmd.postProcess, 
-                        this.selectonNow.liveSes 
+                        recipe.liveSes 
                     );
 
                 }, 
-                parseInt( this.selectonNow.intervalEverySec ) * 1000 
+                parseInt( recipe.intervalEverySec ) * 1000 
                 )
             );
 
@@ -624,7 +714,7 @@ methods:{
         this.onOvenCompact_full( 'nooo custom', 
             postProcessCmd.cmd, 
             postProcessCmd.postProcess, 
-            this.selectonNow.liveSes 
+            recipe.liveSes 
         );
     },
 
@@ -643,53 +733,51 @@ methods:{
             return 1;
         }
 
+        
+        let postProcess = ( chunkNo, resToProcess ) => {
+            console.log('[oven] -> postprocess have valTypes ',JSON.stringify(this.oven.opts.valType));
 
-        let postProcess = ( chunkNo, res ) => {
             if( valType == 'raw' ){
-                //console.log('[over 1111RAW] res',res);
-                this.msgWrapInType( `${title}: ( raw ): ${res}`, wrapType );
-                
-            }else if( valType == 'secLeft' && res.length > 0 ){
-                console.log('[over 6789] res ->',r);
-                res.forEach( r => {
+                //console.log('[oven 1111RAW] resToProcess',resToProcess);
+                this.msgWrapInType( `${title}: ( raw ): ${resToProcess}`, wrapType );
+           
+            }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
+
+                console.log('[oven 6789 - '+valType+'] resToProcess ->',r);
+                resToProcess.forEach( r => {
                     if( r ){
-                        mRes = parseInt(r);
-                        this.msgWrapInType( 
-                            `${title}: ( sec left )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+                        try{
+                            mRes = parseInt(r);
+                            this.msgWrapInType( 
+                                `${title}: ( ${valType} )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType );
+                        } catch(e){
+                            console.log('EE res line to integer no good');
+                        }
                     
                     }
 
                 });
-            
-        
-            }else if( valType == 'percent' && res.length > 0  ){
-                res.forEach( r => {
-                    if( r ){
-                        mRes = parseInt(r);
-                        this.msgWrapInType( `${title}: ( percent )<br>${ this.dataWrapType( '', mRes, valType ) }`, wrapType  );
-                    }
-                });
-                /*{
-                    text:`<div id="${divName}"></div>`,
-                    afterShown: function () {
-                        new JustGage({
-                            id: divName,
-                            value: mRes,
-                            min: 0,
-                            max: 100,
-                            title: title,
-                            donut: true
-                            });
-                    }
-                });*/
 
             
 
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             }else {
-                console.log('EE 5678987 valType not supported [',valType,'] is array of ('+res.length+') \n res: ',res);
+                console.log('EE 5678987 valType not supported [',valType,'] is array of ('+resToProcess.length+') \n resToProcess: ',resToProcess);
             }
         };
 
@@ -719,6 +807,76 @@ methods:{
     },
 
 
+
+    getByCompactName( cName ){
+        
+
+        let compacts = {
+            'e01Mux_left':() => {
+                //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
+                let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
+                return {
+                    liveSes: true,
+                    cmd: postProcessCmd.cmd,
+                    postProcess: postProcessCmd.postProcess,
+                };
+            },            
+            'home_perc':() => {
+                //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
+                let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery - in percents', 'percent' );
+                return {
+                    liveSes: true,
+                    cmd: postProcessCmd.cmd,
+                    postProcess: postProcessCmd.postProcess,
+                };
+            },
+            'disk space':()=>{
+                let cmd = `df -h $HOME`;
+                let divName = 'abc'+Date.now();
+                let postProcess = ( chunkNo, result ) => {
+                    console.log('[oven]-diskSpace ',result);
+                    let rWords = result[2].split(' ');
+                    let percInd = rWords.findIndex(o => o.endsWith('%') );
+                    let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
+                    let gigW = rWords.filter( w => w.length > 2 );
+                    let gigAvail =  gigW[ 3 ];
+                    $.toast({
+                        text:`Disk space at home: <br><br>${result[2]}<br><div id="${divName}"></div>`,
+                        afterShown: function () {
+                            let justGage2 = new JustGage({
+                                id: divName,
+                                value: percIs,
+                                min: 0,
+                                max: 100,
+                                title: 'Home left: '+gigAvail,
+                                donut: true
+                                });
+                        }
+                    });
+                };
+
+
+                return {
+                    liveSes: false,
+                    cmd,
+                    postProcess
+                };
+
+            },
+        };
+
+        
+        if( !`${cName}` in compacts )
+            return undefined;
+        else
+            return compacts[ cName ];
+
+
+    },
+
+
+
+
     onOvenCompact_full( compactName = 'disk space', ownCmd = undefined, ownPost = undefined, ownLive = false ){
 
         let cmd = undefined;
@@ -729,12 +887,21 @@ methods:{
         let tDelta = undefined;
 
 
+        let compactByName = this.getByCompactName( compactName );
+        
         if( ownCmd != undefined ){
             cmd = ownCmd;
             postProcess = ownPost;
             liveSes = ownLive;
 
-        }else if( compactName == 'e01Mux_left' ){
+        }else if( compactByName != undefined ){
+            let compactObj = compactByName();
+            liveSes = compactObj.liveSes;
+            cmd = compactObj.cmd;
+            postProcess = compactObj.postProcess;
+        
+
+        }/*else if( compactName == 'e01Mux_left' ){
             //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
             liveSes = true;
             let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
@@ -784,7 +951,7 @@ methods:{
                 
                
             }
-        }
+        }*/
 
 
 
@@ -901,16 +1068,16 @@ methods:{
             this.oven.watchingIter = setInterval(()=>{
                 let killInter = false;
                 let pendinng = this.oven.data.filter( spi => spi.tEnd == undefined );
-                console.log('[over][watcher] .... ',pendinng.length);
+                console.log('[oven][watcher] .... ',pendinng.length);
                 if( this.oven.data == undefined ){
                     killInter = true;
                 }else{
                     
                     if( pendinng.length == 0 ){
                         killInter = true;
-                        console.log('[over][watcher] .... kill it it\' done');
+                        console.log('[oven][watcher] .... kill it it\' done');
                     }else{
-                        console.log('[over][watcher] working ... ',pendinng);
+                        console.log('[oven][watcher] working ... ',pendinng);
                     }
                 }
                     
