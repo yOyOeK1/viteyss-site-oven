@@ -2,7 +2,10 @@
 .aAsLinks a{
     cursor: pointer;
 }
-
+pre{
+    margin-top:0px;
+    margin-bottom:0px;
+}
 </style>
 
 <template >
@@ -290,9 +293,9 @@ pennding now:</pre>
     ## ingreadience
 
 
-    
+    <br>
 
-    * protocal:<!-- <br></br>
+    * protocal: <!-- <br></br>
     <input type="text" v-model="recipeNow.mediumProtocal"></input>-->
     <select v-model="recipeNow.mediumProtocal">
         <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
@@ -302,11 +305,11 @@ pennding now:</pre>
     
 
     <div v-if="recipeNow.mediumProtocal == 'mqtt'">
-        - topic adres:
+        * topic adres:
         <input type="text" v-model="recipeNow.topicAddress"></input><br></br>
     </div>
     <div  v-else-if="recipeNow.mediumProtocal == 'cmd'">
-        - command:
+        * command:
         <select @change="recipeNow.topicAddress = $event.target.value">
             <option value="0">- - -</option>
             <option v-for="cmdH,cmdI in oven.cmdHistory"
@@ -322,7 +325,7 @@ pennding now:</pre>
 
 
 
-    type of value:<!--<br></br>
+    * type of value:<!--<br></br>
     <input type="text" v-model="recipeNow.valType"></input>-->
     <select v-model="recipeNow.valType">
         <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
@@ -350,30 +353,41 @@ pennding now:</pre>
 
 
     <div v-if="recipeNow.liveSes == false">
-        so interval then every ( .sec ):<br></br>
-        <input type="number" min="1" max="600" step="1" v-model="recipeNow.intervalEverySec" ><br></br>
-        <small>0 - no interval </small>
+        * interval every: 
+        <input type="number" min="1" max="600" step="1" v-model="recipeNow.intervalEverySec" >
+        ( .sec )<br></br>
+        <pre><small>0 - no interval </small></pre>
     </div>
 
 
-    <hr></hr>
-    <button @click="onProbeSelectorFrom( recipeNow )">bake recepe</button>
-    TODO523 <!-- shoud show exit code of test ?--> 
-    
-    
-    
-    
-    <div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">
-        <select v-model="recipeNow.saveChannelNo" 
-            title="Save is free channel"
-            >
-            <option value="-1">ch - </option>
-            <option v-for="ch in freeChannels"
-                :value="ch">ch [ {{ch}} ] free</option>
-        </select>
-        <button @click="onSaveSelectorFrom()">save recepe</button>
-    </div>
+    <br>
 
+
+    
+    ## toping action
+<pre style="padding:5px;">
+<button @click="onProbeSelectorFrom( recipeNow )">Bake recepe</button>
+ - OR -
+<div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">Save recipe to:  
+<select v-model="recipeNow.saveChannelNo" 
+    title="Save is free channel"
+    >
+    <option value="-1">ch - </option>
+    <option v-for="ch in getChannelFrom( oven.adressUrl ).length"
+        :value="ch-1"
+        :selected="false"
+        >
+        ch [ {{ch-1}} ] {{freeChannels[ ch-1 ] }}
+    </option>
+</select>
+<button
+    title="Save recipe" 
+    @click="onSaveSelectorFrom()">Save to file</button>
+</div></pre>        
+
+    
+    
+    
 </OvGroup>
 
 
@@ -390,7 +404,7 @@ pennding now:</pre>
 
 <script>
 
-
+import { ref } from 'vue';
 import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
 import OvDir from './ovDir.vue';
@@ -440,6 +454,7 @@ data(){
                 `free -hm | grep Mem | awk '{print "Ram: "$3"/"$2}'`, // #	Ram: 2.5Gi/30Gi
                 `free | grep Mem | awk '{print ($3/$2)*100.00}'`, // to percent rame use
                 `acpi -b | awk '{print $4}' | replace '%,' ''`, // # batery local status
+                '../viteyss-site-oven/ovenDef/0_ch_sqlite3_select.sh "tab1" "/tmp/dbTab1.db"', // # sqlite3 slection
             ],
             
             
@@ -493,6 +508,9 @@ methods:{
     // dir CookBook
 
     
+    getChannelFrom( adressUrl ){
+        return this.oven.dir[ adressUrl ]['layout']['channels'];
+    },
 
     getChannelFromNo( adressUrl, chNo ){
         return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
@@ -578,7 +596,7 @@ methods:{
             'onReady':(r)=>{
                 let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven] cmd0 sendKill DONE',cmdRes );
-                this.onQeryTasksNow();
+                //this.onQeryTasksNow();
                 }
         });
     },
@@ -689,7 +707,7 @@ methods:{
     },
 
     getChannelsFreeToArray( jdir ){
-        let tr = [];
+        this.freeChannels = [];
         console.log('[oven] ch get free channels list ...',jdir[ this.oven.adressUrl ]['layout']);
         
         let chnow = jdir[ this.oven.adressUrl ]['layout']['channels'];
@@ -697,11 +715,14 @@ methods:{
             if( !( 'rName' in chnow[ ci ] ) ){
                 console.log('[oven] ch '+ci+' ... ', chnow[ ci ] );
             
-                tr.push( ci ); 
+                this.freeChannels.push( 'free' ); 
+            }else{
+                this.freeChannels.push( 'overrite' );
             }
+            
         }
         
-        this.freeChannels = tr;
+        //this.freeChannels = tr;
     },
 
 
@@ -849,7 +870,7 @@ methods:{
             `#"`,
             '',
             'if test -e "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js";then',
-            ' echo "# target file exist exit 1";exit 1',
+            ' echo "# EE target file exist exit 1";exit 1',
             'else',
             ' echo "# target file OK saving ...."',
             ' echo "'+recB64+'" | base64 -d > "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js"',

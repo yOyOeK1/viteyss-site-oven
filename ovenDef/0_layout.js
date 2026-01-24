@@ -1,5 +1,5 @@
 {
     "name":"Default layout",
     "type":"grid",
-    "channels":10
+    "channels":15
 }
