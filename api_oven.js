@@ -230,7 +230,37 @@ class serveroven{
         if( sapi.length ==  4 ){
             res.end('4');
         
-        
+        // intux  / /apis/oven/intux
+        }else if( sapi.length >=  1 && sapi[0] == 'intux' ){
+            console.log('client at intux');
+            res.writeHead(200,{
+                'Content-Type': 'text/html'
+                
+            });
+            
+            let adressURLhref = this.url+'/'+sapi.join('/');
+            let screen = ['<html><body><pre># intux ... raw',`# adressURL:  [ ${sapi.join(' / ')} ]`, '#','## Menu'];
+            let rMenu = [
+                'exit', ()=>{ return 'quit / exit'; },
+                'say hello', ()=>{ return 'hello world'; },
+            ];
+
+            for( let li=0,lc=rMenu.length; li<lc; li+=2 ){
+                screen.push( `<a href="${adressURLhref}/${rMenu[ li ]}">${(li/2)+1} - ${ rMenu[ li ] }</a>` );
+                
+
+            }
+
+            screen.push('\n---\n'+JSON.stringify(this.ovenCurrent,null,4));
+
+
+            screen.push('</pre></body></html>');
+
+            res.end( screen.join('\n')+'\n' );
+
+
+            return 0;
+
 
         // http://localhost:8080/apis/oven/dirUpdate
         // to update current home dir CookBooks ~/.viteyss/oven from fs
