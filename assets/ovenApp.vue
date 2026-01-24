@@ -229,8 +229,10 @@ pennding now:</pre>
 <OvGroup
     gtitle="cmd:"
     >
+
     <button
         title="Save this command in history global TODO"
+        @click="onSaveToHistory()"
         ><i class="fa-solid fa-heart-circle-plus"></i></button>
 
     <input type="text" @change="onChangeInput_toCmd" ref="cmdInputRef"
@@ -744,8 +746,64 @@ methods:{
                 console.log('[oven] QOvenDir result .... ', JSON.stringify( j ,null,4) );
                 this.oven.dir = j;
                 } 
-            });
+        });
     },
+
+
+
+
+
+
+    // ----------------------- cmd
+
+    onSaveToHistory(){
+        // cat /proc/cpuinfo | grep -n 'cpu MHz'
+        let cmdStr = `${this.$refs.cmdInputRef.value}`;
+        if( cmdStr == '' ) return 1;
+        let cmdToSaveB64 = btoa( cmdStr );
+        let cmdSh = [
+            'targetF="$HOME""/.viteyss/oven/history"',
+            'echo "# will add to root histary new record ...',
+            '# in [ $targetF ]',
+            '#"',
+            'echo -en "\n## [ notset ]\n#// no description ... `date`\n#cmd:" | tee -a "$targetF"',
+            'echo "'+cmdToSaveB64+'" | base64 -d | tee -a "$targetF"',
+            'echo "" | tee -a "$targetF"',
+
+            'echo "# --- DONE"',
+            
+
+        ].join( '\n' );
+        let cmdShB64 = btoa ( cmdSh );
+        console.log('[oven] on save to history \n#  base64: lengthi ( '+cmdShB64.length+' )\n#  cmd:\n\n'+cmdSh);
+        
+        this.onDoFetch( '/apis/oven/cmd0/b64:'+cmdShB64 ,{
+            'onReady':(r)=>{
+                let cmdRes = this.cunksResult_resultObject( r );
+                console.log('[oven] on save to history result .... \n',cmdRes );
+                if( cmdRes.exitCode == '0' ){
+                    $.toast( 'New entry in history file ...' );
+                }else{
+                    $.toast( 'Save new entry in history file ... ERROR' );
+                }
+            } 
+        });
+    
+    },
+
+
+
+
+    // ----------------------- cmd END
+
+
+
+
+
+
+
+
+
 
 
     msgWrapInToast( msg ){
@@ -848,6 +906,11 @@ methods:{
                 console.log('EE dataWrapType Nan ',valType);
         }
     },
+
+
+
+
+
 
     onSaveSelectorFrom( recipe ){
 
@@ -1029,7 +1092,14 @@ methods:{
 
         
         if( wrapType == 'terminal' ){
-            cmd = `x-terminal-emulator -e "${cmd};sleep 10;"`;
+            let termNo = '# '+title+' ... '+Date.now();
+            cmd = `x-terminal-emulator --title '${termNo}' -e "
+                wmctrl -a '${termNo}' \
+                || \
+                echo '# Focus at terminal not working error ... continue';
+                ${cmd};
+                
+                " `;
         }
 
 

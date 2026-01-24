@@ -1,29 +1,30 @@
 
+## start count since 2026-01-21 12:....
 ##   [ debug ] 
-##// start count since 2026-01-21 12:....
-#echo $(( `date +%s` - 1769016074 ))'
+#cmd:echo $(( `date +%s` - 1769016074 ))'
 
+## Ram: 2.5Gi/30Gi
 ##   [ diagnostic ] 
-##// Ram: 2.5Gi/30Gi
-#free -hm | grep Mem | awk '{print "Ram: "$3"/"$2}'
+#cmd:free -hm | grep Mem | awk '{print "Ram: "$3"/"$2}'
 
+## to percent rame use
 ##   [ diagnostic ]
-##// to percent rame use
 #free | grep Mem | awk '{print ($3/$2)*100.00}'
 
+## batery local status
 ##  [ diagnostic ]
-#// batery local status
-#acpi -b | awk '{print $4}' | replace '%,' ''
+#cmd:acpi -b | awk '{print $4}' | replace '%,' ''
 
+## sqlite3 select
 ##  [ sqliteCRUD example ]
-#// sqlite3 select
-#../viteyss-site-oven/ovenDef/0_ch_sqlite3_select.sh "tab1" "/tmp/dbTab1.db"
+#cmd:../viteyss-site-oven/ovenDef/0_ch_sqlite3_select.sh "tab1" "/tmp/dbTab1.db"
 
+## sqlite3 insert
 ##  [ sqliteCRUD example ]
-#// sqlite3 insert
-#../viteyss-site-oven/ovenDef/0_ch_sqlite3_insert.sh "tab1" "/tmp/dbTab1.db" "$(date)"
+#cmd:../viteyss-site-oven/ovenDef/0_ch_sqlite3_insert.sh "tab1" "/tmp/dbTab1.db" "$(date)"
 
            
+## to make images for *.md from files in ./examples/src*
 ##   [ md ]
-##// to make images for *.md from files in ./examples/src*
-#for i in `find ./examples/scr*`;do echo '![]('$i')'; done
+#cmd:for i in `find ./examples/scr*`;do echo '![]('$i')'; done
+
