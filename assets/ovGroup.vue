@@ -1,5 +1,7 @@
 <template>
 
+
+<section :id="gtitle.toLowerCase().replaceAll('#','_').replaceAll(' ','_')">
 <div :style="`
     border: solid ${ isDepth > 4 ? '#dcb ' : 'gray' } 2px; 
     border-radius: 7px;
@@ -30,6 +32,7 @@
         padding-right:20px;
 
         ">
+        
         <span v-if="isDepth > 2">[{{ isDepth }}]{{ gtitle }}<br></span>
         <span v-else>
             <b>[{{ isDepth }}]# {{ gtitle }}</b><br>    
@@ -40,6 +43,7 @@
     
     <slot></slot>
 </div>
+</section>
 </template>
 <script>
 export default{

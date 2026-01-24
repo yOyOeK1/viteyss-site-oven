@@ -1,6 +1,13 @@
+<style>
+.aAsLinks a{
+    cursor: pointer;
+}
+
+</style>
+
 <template >
 Working: {{ oven.working  }} ( {{ oven.runNo }} )
-<div class="smallBt" style="color:#000000;">
+<div class="smallBt aAsLinks" style="color:#000000;">
 
 
 
@@ -304,6 +311,7 @@ pennding now:</pre>
             <option value="0">- - -</option>
             <option v-for="cmdH,cmdI in oven.cmdHistory"
                 :value="cmdH"
+                :selected="recipeNow.topicAddress == cmdH"
                 >
                 [ {{ cmdI }} ]: {{ cmdH }}
             </option>
@@ -359,9 +367,9 @@ pennding now:</pre>
         <select v-model="recipeNow.saveChannelNo" 
             title="Save is free channel"
             >
-            <option value="-1">- - -</option>
+            <option value="-1">ch - </option>
             <option v-for="ch in freeChannels"
-                :value="ch">ch [ {{ch}} ]}</option>
+                :value="ch">ch [ {{ch}} ] free</option>
         </select>
         <button @click="onSaveSelectorFrom()">save recepe</button>
     </div>
@@ -503,6 +511,16 @@ methods:{
             };
 
             this.onProbeSelectorFrom( chObj, data );
+
+        }else if( data.action == 'edit' ){
+            let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
+            if( this.oven.cmdHistory.findIndex( c => c == chObj.topicAddress ) == -1 )
+                this.oven.cmdHistory.push( chObj.topicAddress );
+
+            this.recipeNow =  chObj;
+
+            // scroll to #Baking_recipe
+            document.getElementById('baking_recipe').scrollIntoView({ behavior: 'smooth' })
 
         }else{
             TODO
@@ -820,15 +838,23 @@ methods:{
         
         
         // colect stuff to str msg
-        let msg = JSON.stringify( this.recipeNow );
-                
+        let msg = JSON.stringify( this.recipeNow, null, 4 );
+        let recB64 = btoa( msg ); 
+        
         // build bash cmd to do the thing...
         let cmd = [`echo "# on Save `,
             `# recipe          [ ${this.recipeNow.rName} ]`,
             `# to channel No    [ ${this.recipeNow.saveChannelNo} ]`,
             `# path             [ ${this.oven.adressUrl} ]`,
-            
             `#"`,
+            '',
+            'if test -e "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js";then',
+            ' echo "# target file exist exit 1";exit 1',
+            'else',
+            ' echo "# target file OK saving ...."',
+            ' echo "'+recB64+'" | base64 -d > "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js"',
+            ' ls -alh "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js"',
+            'fi',
             '',
             'echo "## ITS OK ##',
             '# update oven directory !! ',
