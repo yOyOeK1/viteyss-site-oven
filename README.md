@@ -16,15 +16,17 @@ So Cook Book holds sets of recipes. For something what I want / need to do.
 
 * instance execution of your recipe
 
-* fast command test place with option to store it as channel in CookBook
+* fast command test place with option to store it as channel in CookBook, local cmd history / favorit 
 
 * battery alert if battery to low show toast
 
-* button to add record to database.
+* button to add record to database
+
+* ...
 
 
 
-### after sourcing data
+### Bakeing recipe
 
 Recipe can be Baked in oven as one shot or long time live process.
 
@@ -32,13 +34,15 @@ stdio is main source of data sourcing for next step
 
 **line** or block of result of text can be postProcess as 
 
-* raw
+* A raw
 
-* secLeft
+* A secLeft
 
-* percent
+* W percent
 
-* percent bar
+* W percent bar
+
+* [ ] A progress bar ascii
 
 * ...
 
@@ -46,15 +50,15 @@ Then it's passing it to wrapping section ...
 
 
 
-#### wrapping it
+### wrapping it
 
 It's possible to set recipe that it can wrapped our product in:
 
-* toast - temporary popup on screen in corner
+* W toast - temporary popup on screen in corner
 
 * external x-terminal-emulator
 
-* log
+* W log
 
 * [ ] widget / channel of recipe it self
 
@@ -66,7 +70,7 @@ It's possible to set recipe that it can wrapped our product in:
 
 
 
-## screenshoot
+#### screenshoot
 
 ####### ver 26012x ... state chaos working
 
@@ -79,6 +83,44 @@ It's possible to set recipe that it can wrapped our product in:
 ![](./examples/screen_logOfInerativeRecipe_26012x.png) Log of iterative recipe Ram use / total Gi from `free`
 
 ![](./examples/screen_settingRecipe_26012x.png)
+
+
+
+#### notes
+
+```info
+A - [ ] asci posible to worki in terminal
+W - [ ] web browser version
+```
+
+
+
+
+
+
+- [ ] handle `read -r` from bash
+
+- [ ] 
+
+
+
+- [ ] set env for runnng recipe prefix `oven_`:
+  
+  - [ ] home - ~/.viteyss/oven
+  
+  - [ ] adressURL - CookBook adress from `oven_home`
+  
+  - [ ] my_chNo
+  
+  - [ ] my_rName
+  
+  - [ ] ver - over version
+
+
+
+...
+
+
 
 ---
 
