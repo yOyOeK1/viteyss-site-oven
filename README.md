@@ -4,8 +4,6 @@
 
 gui for bash with some rerouting.
 
-
-
 ## what it solves for me
 
 N number of lost / forgotten / misplaced scripts and tasks can be in one place. Rapid / asci / directory / link base system for configuration.
@@ -23,8 +21,6 @@ So Cook Book holds sets of recipes. For something what I want / need to do.
 * button to add record to database
 
 * ...
-
-
 
 ### Bakeing recipe
 
@@ -48,8 +44,6 @@ stdio is main source of data sourcing for next step
 
 Then it's passing it to wrapping section ...
 
-
-
 ### wrapping it
 
 It's possible to set recipe that it can wrapped our product in:
@@ -61,14 +55,11 @@ It's possible to set recipe that it can wrapped our product in:
 * W log
 
 * [ ] widget / channel of recipe it self
-
 - [ ] to ENV as variable
 
 - [ ] to trigger other channel
 
-
-
-
+- [ ] system notification ( gnome or make recepy with args )
 
 #### screenshoot
 
@@ -84,7 +75,19 @@ It's possible to set recipe that it can wrapped our product in:
 
 ![](./examples/screen_settingRecipe_26012x.png)
 
+#### xdoc
 
+Started Beaking recipe is getting some ENV variables to help it to do the things ..
+
+- [x] set ENV on run time, prefix `oven_`:
+  
+  - [x] `oven_home` - ~/.viteyss/oven
+  
+  - [x] `oven_adressURL` - CookBook adress from `oven_home`
+  
+  - [x] `oven_my_chNo`
+  
+  - [x] `oven_my_rName`
 
 #### notes
 
@@ -93,34 +96,43 @@ A - [ ] asci posible to worki in terminal
 W - [ ] web browser version
 ```
 
+- [ ] from recipe click
+  
+  - [ ] see that it's not run - W
+  
+  - [ ] see that it's started - W
+    
+    - [x] in cmd - results
+  
+  - [ ] see chunks if needed - log 
+    
+    - [x] in cmd - results
+  
+  - [ ] see  esult if needed
+    
+    - [x] in cmd - results
+  
+  - [ ] mark exitCode
+    
+    - [x] in cmd - results
+  
+  - [ ] get result if needed to widget / channel No
 
+- [ ] valType scripts at server site / shs
 
-
-
+- [ ] common cookbok with set arguments types to use: shs scripts?
 
 - [ ] handle `read -r` from bash
 
-- [ ] 
+- [ ] process kill when client leavs
 
+- [ ] postprocess to server site
 
+- [ ] wrapper to server site
 
-- [ ] set env for runnng recipe prefix `oven_`:
-  
-  - [ ] home - ~/.viteyss/oven
-  
-  - [ ] adressURL - CookBook adress from `oven_home`
-  
-  - [ ] my_chNo
-  
-  - [ ] my_rName
-  
-  - [ ] ver - over version
-
-
+- [ ] directory layout for config
 
 ...
-
-
 
 ---
 

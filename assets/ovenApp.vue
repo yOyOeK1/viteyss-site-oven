@@ -213,19 +213,33 @@ pennding now:</pre>
 </OvGroup>
 
 
-   
-
-<OvGroup
-    gtitle="Cmd - results"
-    >
-    <div v-for="res,resNo in oven.results"
-        :style="'border:1px solid green;'"
+<div style="position:relative;">
+    <OvGroup
+        :gtitle="'Cmd - results ( '+oven.screens.cmdResults.asLines.length+' )'"
         >
-        <small><pre>[{{ res.id }}]: {{ res.data.res.join('\n#\t') }}</pre></small>
+        
+        <a @click="oven.screens.cmdResults.isEmpty = true;oven.screens.cmdResults.strDone = '';oven.ovenRuns=[];"
+            title="Clean all logs entries"
+            style="position:absolute;right:10px;top:4px;"
+            v-if="oven.screens.cmdResults.isEmpty == false"
+            ><i class="fa-regular fa-trash-can"></i>
+        </a>
+  
+        <pre v-html="oven.screens.cmdResults.strDone"></pre>
+        <!--
+        <div v-for="res,resNo in oven.results"
+            :style="'border-bottom:1px solid green;'"
+            >
+            <small><pre>[{{ res.id }}]: {{ res.data.res.join('\n#\t') }}</pre></small>
 
-    </div>
+        </div>
+        -->
 
-</OvGroup> 
+
+    </OvGroup>
+</div>    
+
+     
 <OvGroup
     gtitle="cmd:"
     >
@@ -236,6 +250,8 @@ pennding now:</pre>
         ><i class="fa-solid fa-heart-circle-plus"></i></button>
 
     <input type="text" @change="onChangeInput_toCmd" ref="cmdInputRef"
+        id="cmdInputRefByID"
+        value="free; sleep 1;free; sleep 1;free; sleep 1;"
         placeholder="#$ echo 'hello world';"
         style="min-width: 75%;"></input><br></br>
     <select @change="$refs.cmdInputRef.value = $event.target.value;$refs.cmdInputRef.focus();"
@@ -444,7 +460,7 @@ data(){
             spList: undefined,
             dir: undefined,
             adressUrl: '',
-            results:[],
+            ovenRuns:[],
             isWatching: false,
             watchingIter: -1,
             logs: [],
@@ -469,7 +485,7 @@ data(){
                     'cmd' ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'secLeft', 'percent', 'percent bar' ],
+                valType: [ 'raw', 'secLeft', 'percent', 'percent bar', 'A progress bar' ],
                 wrapType: [ 'toast',  'terminal', 'log', 
                 'widget',
                 ],
@@ -477,6 +493,14 @@ data(){
 
             },
             
+            screens:{
+                cmdResults:{
+                    isEmpty:true,
+                    asLines:"",   
+                    strDone:'nice ! ...'                 
+                },
+                
+            },
             
         },
 
@@ -507,6 +531,110 @@ data(){
 
 methods:{
 
+    // screen render ---- START
+    
+    
+    getScreen( sName = 'cmdResults' ){
+        let msg = '';
+        console.log('[ scr3 ] redraw start ... [ '+sName+' ] ');
+        let sTr = ['[-1]# [oven] getScreen -> sName: [ '+sName+' ]'];
+        
+        if( !( sName in this.oven.screens ) ){
+            console.log('[ scr3 ] EE no screen with name ...[ '+sName+' ]');
+            return 1;
+        }
+        
+        
+        if( sName == 'cmdResults' ){        
+
+            for ( let ri=0,rc=this.oven.ovenRuns.length; ri<rc; ri++ ){
+                let runO = JSON.cloneRaw( this.oven.ovenRuns[ ri ] );
+
+                let trH = `[${ runO.runNo }] `;
+                let tr = trH+`#$ ${ runO['cmd']} \n`;
+                
+                if( 'result' in runO && 'data' in runO.result ){
+                    
+                    //tr+= '</pre><pre style="color:#ff8811;">';
+                    tr+=`${trH}  ${ runO.result.data.res.join('\n'+trH+'  ') }`+
+                        `\n<span style="background-color:#${ runO.result.data.exitCode=='0'?'d1d1d1':'f98a6f' };">`+
+                        `${trH}# ... exitCode: [ ${ runO.result.data.exitCode } ]  `+
+                        `time in ... ${ msToDurationString( ( runO['tEnd']-runO['tStart'])/1000 ) }`+
+                        '</span>';
+                    //tr+= '</span>';
+                  
+                }else if( 'chunks' in runO && runO.chunks.length > 0 ){
+                    
+                    let chunkTr = [];
+                    let cStart = false;
+                    for ( let chn of runO.chunks ) {
+                        let tLines = chn.split('\n');
+                        
+                        for( let tLine of tLines ){
+                        
+                            if( tLine.indexOf('][sp][data] ...') != -1 ){
+                                cStart = true;
+                            }else if( 
+                                tLine.indexOf(']   # GOGO ... #') != -1 ||
+                                tLine == ''
+                            
+                            ){
+                            
+                            }else if( cStart && 1 ){
+                                chunkTr.push( tLine );
+                            }
+                        
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    tr+= '<span style="background-color:#dafbd2;">';
+                    //tr+=`${trH} ${ runO.chunks.filter( r => r.indexOf('][sp][data] ...') != -1 ).join('') }`;
+                    tr+=`${trH}${ chunkTr.join('\n') }`;
+                    tr+=`...`;
+                    tr+= '</span>';
+                                    
+                }else{
+                    tr+= trH+' ... working'; 
+                }
+                    
+                console.log('[ scr3 ]runO ['+ri+']: ',runO,'\ntr ....\n',tr);
+                sTr.push( tr );
+            }
+        
+         
+            
+        
+        }else{
+            msg = '[oven] EE get screen NAN sName '+sName;
+            sTr.push( msg );
+        }       
+        console.log('oven g');
+        console.log( sTr.join('\n') );
+        this.oven.screens[ sName ].strDone = sTr.join('\n'); 
+        this.oven.screens[ sName ].asLines = sTr;
+        this.oven.screens[ sName ].isEmpty = false;
+        
+        if( 1 ){
+            setTimeout(()=>{
+            let byInput = document.getElementById('cmdInputRefByID');
+            if( byInput == document.activeElement )
+                byInput.scrollIntoView({ behavior: 'smooth',block: "center" });
+            }, 20);
+        }
+        
+
+    },
+                
+
+    // screen render ---- END
+
+
+
+
+
     // dir CookBook
 
     
@@ -514,7 +642,7 @@ methods:{
         return this.oven.dir[ adressUrl ]['layout']['channels'];
     },
 
-    getChannelFromNo( adressUrl, chNo ){
+    getChannelFromNo( adressUrl = '', chNo ){
         return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
     },
 
@@ -797,6 +925,20 @@ methods:{
     // ----------------------- cmd END
 
 
+    // ---- env bash export  ----  START
+    getCmdEnvHeader( chNo = -1, rName = 'debug_test' ){
+        return [
+            `# set oven ENV`,
+            `export oven_home='/.viteyss/oven'`,
+            `export oven_adressUrl='${this.oven.adressUrl}'`,
+            `export oven_my_chNo='${chNo}'`,
+            `export oven_my_rName='${rName}'`,
+            `# set oven ENV --- END`,
+        ].join('\n')+';\n';
+    },
+    
+    // ---- env bash export  ----  END
+
 
 
 
@@ -876,6 +1018,19 @@ methods:{
                 return `<div id="${divName}"></div>`;
                     //afterShown: function () {
                         
+        }else if( valType == 'A progress bar' ){
+            let w = parseFloat(data);
+            let size = 20.00 - 6;
+            let cDone = (size/100.0)*w;
+            let percLen = `${parseInt(w)} `.length;
+            if( cDone > 100.00 || cDone < 0.00 || size <= 0 ) return 'EE apbar '+data;
+            
+            console.log(`[oven apbar debug] `,{data, w, percLen, size, cDone,'notDone':( size - cDone)});
+            let strDone = 'O'.repeat( parseInt( cDone ) );
+            let strNot = ".".repeat( parseInt( size - cDone )  ); 
+            let tr = `[ ${strDone}${strNot} ]${' '.repeat(4-percLen)}${parseInt(w)}%`;
+            console.log('[oven A progress bar] '+tr);
+            return tr;
 
         }else if( valType == 'percent bar' ){
                 let divName = 'ooccPerc'+Date.now();
@@ -978,6 +1133,16 @@ methods:{
             '\n\n\ttargetData: \n', 
             targetData );
 
+        let cmdPrefix = '';
+        if( targetData != undefined && targetData.chNo )
+            cmdPrefix = this.getCmdEnvHeader(   
+                targetData.chNo , 
+                this.getChannelFromNo( targetData.adressUrl, targetData.chNo ).rName 
+            );
+        else
+            cmdPrefix = this.getCmdEnvHeader();
+        
+
         let postProcessCmd = this.makeHook( 
             recipe.mediumProtocal, 
             recipe.topicAddress, 
@@ -1002,7 +1167,7 @@ methods:{
                 setInterval( () => { 
 
                     this.onOvenCompact_full( 'nooo custom', 
-                        postProcessCmd.cmd, 
+                        cmdPrefix+postProcessCmd.cmd, 
                         postProcessCmd.postProcess, 
                         recipe.liveSes 
                     );
@@ -1012,13 +1177,15 @@ methods:{
                 )
             );
 
-        }
+        }else{
          
-        this.onOvenCompact_full( 'nooo custom', 
-            postProcessCmd.cmd, 
-            postProcessCmd.postProcess, 
-            recipe.liveSes 
-        );
+            this.onOvenCompact_full( 'nooo custom', 
+                cmdPrefix+postProcessCmd.cmd, 
+                postProcessCmd.postProcess, 
+                recipe.liveSes 
+            );
+
+        }
 
     },
 
@@ -1060,7 +1227,7 @@ methods:{
                                 wrapType, targetData 
                             );
                         } catch(e){
-                            console.log('EE res line to integer no good');
+                            console.log('EE res line to integer no good error\n',e);
                         }
                     
                     }
@@ -1221,6 +1388,8 @@ methods:{
 
         }
 
+        console.log('[oven Starts] ...',{ cmd, postProcess, liveSes });
+
         // final end
         if( cmd != undefined && liveSes == false ){
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
@@ -1238,18 +1407,18 @@ methods:{
             });
 
 
-        // [ ] proces dy when client leaws
-        // [ ] postprocess to server site
-        // [ ] wrapper to server site
-        // [ ] directory layout for config
-        //
+       
 
         // stream
         }else if( cmd != undefined && liveSes == true ){
             let chunkNo = 0
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onChunk':(r)=>{
-                    console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) ['+r+']' );
+                
+                
+                    console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) ... in '+
+                        ( (Date.now() - tStart) /1000 )+' sec.\n'+
+                        '\n'+r );
                     //this.onQeryTasksNow();
                     
 
@@ -1281,22 +1450,46 @@ methods:{
     },
 
     onCmdStrTocmdResConole( cmd ){
-        let bta = btoa(cmd);
-        console.log(`[oven1] cmd0 sending cmd: [ ${atob( bta )} ]`);
+        let bta = btoa(this.getCmdEnvHeader()+cmd);
+        console.log(`[oven1] Oven Run ...\n[oven1]#$ [ ${atob( bta )} ]`);
+        
+        
+        let lchunks = [];
+        let ovenRun = { 
+            runNo:-1,
+            cmd,
+            tStart: Date.now(),
+            chunks: lchunks,
+            result: undefined,
+            tEnd: undefined
+        };
+
 
         this.onDoFetch( '/apis/oven/cmd0/b64:'+bta,{
             'onReady':(r)=>{
-                //console.log('[oven] cmd0 finally .... ',r );
                 let cmdRes = this.cunksResult_resultObject( r );
-                console.log('[oven1] cmd0 res .... ',JSON.stringify(cmdRes,null,4) );
                 
-                this.oven.results.push( {id:cmdRes.runNo, data: cmdRes} );
+                console.log('[oven1]  Oven Run -> res .... ',JSON.stringify(cmdRes,null,4) );
+                
+                ovenRun.runNo = cmdRes.runNo;
+                ovenRun.result = {id:cmdRes.runNo, data: cmdRes};
+                ovenRun.tEnd = Date.now();
+                this.getScreen();
+                
+                
 
-                },
+            },
             'onChunk':(r)=>{
-                console.log('[oven1] cmd0 chunk  .... ',r);
-                } 
-            });
+                console.log('[oven1]  Oven Run -> chunk  .... ',r);
+                lchunks.push( r );
+                this.getScreen();
+            } 
+        });
+        
+        this.oven.ovenRuns.push( ovenRun );
+        this.getScreen();
+        
+        
             
     },
 
