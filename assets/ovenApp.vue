@@ -577,19 +577,19 @@ methods:{
                 let tr = trH+`#$ ${ runO['cmd']} \n`;
                 
                 // finished render 
-                if( runO.result != undefined && runO.result.tEnd != undefined ){
+                if( runO.result != undefined && runO.tEnd != undefined ){
                     
                     //tr+= '</pre><pre style="color:#ff8811;">';
                     
-                    tr+=`${trH}  ${ runO.result.data.res.join('\n'+trH+'  ') }`+
-                        `\n<span style="background-color:#${ runO.result.data.exitCode=='0'?'d1d1d1':'f98a6f' };">`+
-                        `${trH}# ... exitCode: [ ${ runO.result.data.exitCode } ]  `+
+                    tr+=`${trH}  ${ runO.result.res.join('\n'+trH+'  ') }`+
+                        `\n<span style="background-color:#${ runO.result.exitCode=='0'?'d1d1d1':'f98a6f' };">`+
+                        `${trH}# ... exitCode: [ ${ runO.result.exitCode } ]  `+
                         `time in ... ${ msToDurationString( ( runO['tEnd']-runO['tStart'])/1000 ) }`+
                         '</span>';
                     //tr+= '</span>';
                   
                 // working render 
-                }else if( runO.result != undefined && runO.result.chunkTr.length > 0 && runO.result.tEnd == undefined ){
+                }else if( runO.result != undefined && runO.result.chunkTr.length > 0 && runO.tEnd == undefined ){
                     
                     let chunkTr = runO.result.chunkTr;
                     
@@ -1518,7 +1518,8 @@ methods:{
                         } 
                         
                     }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
-                     TODO2//   postProcess( chunkNo, r );
+                        //TODO2//   
+                        postProcess( chunkNo, r );
                     }
 
                     /*if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
