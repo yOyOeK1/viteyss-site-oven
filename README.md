@@ -102,19 +102,20 @@ W - [ ] web browser version
   
   - [ ] see that it's started - W
     
-    - [x] in cmd - results
+    - [ ] show type shared | reconnected / not shared - process 
+    - [ ] in cmd - results
   
   - [ ] see chunks if needed - log 
     
-    - [x] in cmd - results
+    - [ ] in cmd - results
   
   - [ ] see  esult if needed
     
-    - [x] in cmd - results
+    - [ ] in cmd - results
   
   - [ ] mark exitCode
     
-    - [x] in cmd - results
+    - [ ] in cmd - results
   
   - [ ] get result if needed to widget / channel No
 
