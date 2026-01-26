@@ -455,7 +455,7 @@ data(){
 
         oven:{
             working: true,
-            runNo: 0,
+            runsNo: 0,
             tUpdate: undefined,
             spList: undefined,
             dir: undefined,
@@ -531,6 +531,10 @@ data(){
 
 methods:{
 
+
+
+
+
     // screen render ---- START
     
     
@@ -549,13 +553,15 @@ methods:{
 
             for ( let ri=0,rc=this.oven.ovenRuns.length; ri<rc; ri++ ){
                 let runO = JSON.cloneRaw( this.oven.ovenRuns[ ri ] );
-
+                console.log('[ scr3 for cmdResults] runO:',runO);
                 let trH = `[${ runO.runNo }] `;
                 let tr = trH+`#$ ${ runO['cmd']} \n`;
                 
-                if( 'result' in runO && 'data' in runO.result ){
+                // finished render 
+                if( runO.result != undefined && runO.result.tEnd != undefined ){
                     
                     //tr+= '</pre><pre style="color:#ff8811;">';
+                    
                     tr+=`${trH}  ${ runO.result.data.res.join('\n'+trH+'  ') }`+
                         `\n<span style="background-color:#${ runO.result.data.exitCode=='0'?'d1d1d1':'f98a6f' };">`+
                         `${trH}# ... exitCode: [ ${ runO.result.data.exitCode } ]  `+
@@ -563,32 +569,10 @@ methods:{
                         '</span>';
                     //tr+= '</span>';
                   
-                }else if( 'chunks' in runO && runO.chunks.length > 0 ){
+                // working render 
+                }else if( runO.result != undefined && runO.result.chunkTr.length > 0 && runO.result.tEnd == undefined ){
                     
-                    let chunkTr = [];
-                    let cStart = false;
-                    for ( let chn of runO.chunks ) {
-                        let tLines = chn.split('\n');
-                        
-                        for( let tLine of tLines ){
-                        
-                            if( tLine.indexOf('][sp][data] ...') != -1 ){
-                                cStart = true;
-                            }else if( 
-                                tLine.indexOf(']   # GOGO ... #') != -1 ||
-                                tLine == ''
-                            
-                            ){
-                            
-                            }else if( cStart && 1 ){
-                                chunkTr.push( tLine );
-                            }
-                        
-                        }
-                        
-                    }
-                    
-                    
+                    let chunkTr = runO.result.chunkTr;
                     
                     tr+= '<span style="background-color:#dafbd2;">';
                     //tr+=`${trH} ${ runO.chunks.filter( r => r.indexOf('][sp][data] ...') != -1 ).join('') }`;
@@ -631,10 +615,7 @@ methods:{
 
     // screen render ---- END
 
-
-
-
-
+    
     // dir CookBook
 
     
@@ -734,23 +715,31 @@ methods:{
 
 
 
+    // onCmdStrTocmdResConole
 
-
-
-
-    cunksResult_resultObject( lines ){
+    //oven.ovenRuns[ n ].result.chunkTr 
+    //or
+    //oven.ovenRuns[ n ].result.res
+    // or depricated ovenChunksToLine - use this with result and .res 
+    cunksResult_resultObject( linesIn, asChunkFilter = false ){
+        
+        console.log('[ chunksResult ] ',linesIn);
+        if( typeof linesIn == 'string' )
+            linesIn = linesIn.split('\n');
         
         let tr = {
+            'cunksResult_resultObject':1,
             runNo: -1,
-            lines: [],
+            'lines': [],
+            chunkTr: [],
             linesC: -1,
             res: [],
             exitCode:undefined,
 
         };
         
-        if( lines.length > 0  ){
-            lines.findIndex( l => {
+        if( linesIn.length > 0  ){
+            linesIn.findIndex( l => {
                 if( l.indexOf('#  runNo:        [ ') != -1 ){
                     let lTmp = l.split('#  runNo:        [ ')[1];
                     tr.runNo = lTmp.split(' ]')[0];
@@ -758,15 +747,16 @@ methods:{
 
                 }
             });
-            tr.runNo = lines[0].substring( 1 ).split(']')[0];
+            tr.runNo = linesIn[0].substring( 1 ).split(']')[0];
         }
 
 
         let lis = [];
         let spDataStart = 0;
         let lNo = 0;
+        let cStart = false;
         let templateSpData = `[${tr.runNo}][sp][data] ... `;
-        for( let line of lines ){
+        for( let line of linesIn ){
             line.split('\n').forEach(l => {
 
                 if( l != templateSpData && l != '' ){
@@ -778,6 +768,19 @@ methods:{
                 
                     lNo++
                 }   
+                
+                if( l.indexOf('][sp][data] ...') != -1 ){
+                    cStart = true;
+                }else if( 
+                    l.indexOf(']   # GOGO ... #') != -1 ||
+                    l.indexOf(']# [@@] ping client[ ') != -1 ||
+                    l == '' ){
+                
+                }else if( cStart && 1 ){
+                    tr.chunkTr.push( l );
+                }
+                
+                
             });            
         }
         tr.lines = lis;
@@ -1392,6 +1395,7 @@ methods:{
 
         // final end
         if( cmd != undefined && liveSes == false ){
+        
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onReady':(r)=>{
                     let cmdRes = this.cunksResult_resultObject( r );
@@ -1405,24 +1409,30 @@ methods:{
                     console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
                 }
             });
-
-
        
 
         // stream
         }else if( cmd != undefined && liveSes == true ){
+        
             let chunkNo = 0
             this.onDoFetch( '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onChunk':(r)=>{
                 
-                
-                    console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) ... in '+
-                        ( (Date.now() - tStart) /1000 )+' sec.\n'+
-                        '\n'+r );
-                    //this.onQeryTasksNow();
-                    
-
                     if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
+                        let chunkTr = this.cunksResult_resultObject( r );                    
+                        console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) lines [ '+chunkTr.length+' ]... in '+
+                            ( (Date.now() - tStart) /1000 )+' sec.\n'+
+                            '\n'+r );
+                        //this.onQeryTasksNow();
+                        if( chunkTr.res.length > 0 ){
+                            postProcess( chunkNo, chunkTr.res );
+                        } 
+                        
+                    }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
+                     TODO2//   postProcess( chunkNo, r );
+                    }
+
+                    /*if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
                         let tLinst = r.split('\n');
                         let resOk = [];
                         tLinst.filter( l => {
@@ -1436,7 +1446,8 @@ methods:{
                         postProcess( chunkNo, resOk );
                     }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
                         postProcess( chunkNo, r );
-                        }
+                    }
+                    */
                     chunkNo++;
                     
                 }
@@ -1448,18 +1459,22 @@ methods:{
 
 
     },
+    
+    
+
+
+
 
     onCmdStrTocmdResConole( cmd ){
         let bta = btoa(this.getCmdEnvHeader()+cmd);
+        // run by cmd 
         console.log(`[oven1] Oven Run ...\n[oven1]#$ [ ${atob( bta )} ]`);
-        
-        
         let lchunks = [];
         let ovenRun = { 
+            'onCmdStrTocmdResConole':1,
             runNo:-1,
             cmd,
             tStart: Date.now(),
-            chunks: lchunks,
             result: undefined,
             tEnd: undefined
         };
@@ -1472,7 +1487,7 @@ methods:{
                 console.log('[oven1]  Oven Run -> res .... ',JSON.stringify(cmdRes,null,4) );
                 
                 ovenRun.runNo = cmdRes.runNo;
-                ovenRun.result = {id:cmdRes.runNo, data: cmdRes};
+                ovenRun.result = cmdRes;
                 ovenRun.tEnd = Date.now();
                 this.getScreen();
                 
@@ -1480,8 +1495,9 @@ methods:{
 
             },
             'onChunk':(r)=>{
+                let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven1]  Oven Run -> chunk  .... ',r);
-                lchunks.push( r );
+                ovenRun.result = cmdRes;
                 this.getScreen();
             } 
         });
@@ -1492,7 +1508,6 @@ methods:{
         
             
     },
-
 
 
 
@@ -1517,7 +1532,35 @@ methods:{
     },
 
 
+ /// ------------- for delet 
+ 
+ 
+    // drop it for cunksResult_resultObject
+    ovenChunksToLine( chunks ){
+        TODO
+        let chunkTr = [];
+        let cStart = false;
+        for ( let chn of chunks ) {
+            let tLines = chn.split('\n');        
+            for( let tLine of tLines ){        
+                if( tLine.indexOf('][sp][data] ...') != -1 ){
+                    cStart = true;
+                }else if( 
+                    tLine.indexOf(']   # GOGO ... #') != -1 ||
+                    tLine.indexOf(']# [@@] ping client[ ') != -1 ||
+                    tLine == '' ){
+                
+                }else if( cStart && 1 ){
+                    chunkTr.push( tLine );
+                }
+            }
+        }
+        
+        return chunkTr;
 
+    },
+ 
+ 
 
         /*
     chkWatcher(){        
