@@ -1187,7 +1187,8 @@ methods:{
             let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
             chObj['tPing'] = Date.now();
             chObj['statusNow'] = 'running';
-            chObj['result'] = msg;
+            //chObj['result'] = msg;
+            chObj['widget'] = msg;
             
         }
 

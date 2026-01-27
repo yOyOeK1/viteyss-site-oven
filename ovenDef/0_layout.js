@@ -1,5 +1,5 @@
 {
-    "name":"Default layout",
+    "name":"Default oven",
     "type":"grid",
     "channels":15
 }

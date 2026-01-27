@@ -47,7 +47,11 @@ in dir (cashe):
 
         <div style="display: table-cell;">
             [{{ chi }}] 
-            - {{ ch['rName'] }}<pre v-if="dir[ adressUrl ]['layout']['channels'][ chi ]['sp']" v-html="JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['sp'].result,null,4)"></pre>
+            - {{ ch['rName'] }}
+            <pre v-if="typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] == 'string' " v-html=" dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] "></pre>
+            <pre v-else-if="typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] == 'undefined' " >. . .</pre>
+            <pre v-else-if="typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] == 'object' " >is Object {{ JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['widget'], null, 4) }} </pre>
+            <pre v-else>NAN widget typeof: {{ typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] }}</pre>
         </div>
 
 

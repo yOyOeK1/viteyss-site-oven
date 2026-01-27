@@ -6,7 +6,7 @@ gui for bash with some rerouting.
 
 ## what it solves for me
 
-N number of lost / forgotten / misplaced scripts and tasks can be in one place. Rapid / asci / directory / link base system for configuration.
+N number of lost / forgotten / misplaced scripts and tasks can be in one place. Rapid / ascii / directory / link base system for configuration.
 
 So Cook Book holds sets of recipes. For something what I want / need to do. 
 
@@ -14,7 +14,7 @@ So Cook Book holds sets of recipes. For something what I want / need to do.
 
 * instance execution of your recipe
 
-* fast command test place with option to store it as channel in CookBook, local cmd history / favorit 
+* fast command test place with option to store it as channel in CookBook, local cmd history / favorite store in file in current CookBook 
 
 * battery alert if battery to low show toast
 
@@ -30,15 +30,22 @@ stdio is main source of data sourcing for next step
 
 **line** or block of result of text can be postProcess as 
 
-* A raw
+```info
+[A] - [ ] asci posible to worki in terminal and web
+[W] - [ ] web browser version
+```
 
-* A secLeft
+* [A] raw - array line by line of result or chunks
 
-* W percent
+* [x] [A] toString - to string join with `\n`
 
-* W percent bar
+* [A] secLeft - sec left / since 
 
-* [x] A progress bar ascii
+* [W] percent - jQery donuts like visualization
+
+* [W] percent bar - html like progress bar 
+
+* [x] [A] progress bar ascii - ascii like progress bar 
 
 * ...
 
@@ -46,20 +53,22 @@ Then it's passing it to wrapping section ...
 
 ### wrapping it
 
-It's possible to set recipe that it can wrapped our product in:
+It's possible to set recipe that it can wrap product in a:
 
-* W toast - temporary popup on screen in corner
+* [W] toast - temporary popup on screen in corner
 
 * external x-terminal-emulator
 
-* W log
+* [W] log
 
-* [ ] widget / channel of recipe it self
+* [ ] widget / channel of recipe it self ( almost ) 
 - [ ] to ENV as variable
 
 - [ ] to trigger other channel
 
-- [ ] system notification ( gnome or make recepy with args )
+
+
+
 
 #### screenshoot
 
@@ -75,7 +84,31 @@ It's possible to set recipe that it can wrapped our product in:
 
 ![](./examples/screen_settingRecipe_26012x.png)
 
+#### CookBook 's
 
+Since there is working CookBook 's swapping option. In allows now to have unlimited depth and sets of recipes. All the power coming with file system of linux: directories, files, links, fifo, ... is access able as element of configuration of next CookBook.
+
+- [x] swapping CookBook 's
+
+- [ ] keyMap - keyBindings
+
+###### default installation:
+
+It comse with some presets to start with creating your own e
+
+- [x] root CookBook - debug scripts to start ....
+  
+      - [x] system notification ( gnome or make recipe with args )
+
+- [x] oWin - window oven manager
+
+###### Oven look - layouts
+
+- [x] Default oven - layout
+
+- [ ] svg 
+
+- [ ] tui - blessed
 
 #### xdoc
 
@@ -93,11 +126,6 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 #### notes
 
-```info
-A - [ ] asci posible to worki in terminal
-W - [ ] web browser version
-```
-
 - [ ] from recipe click
   
   - [ ] see that it's not run - W
@@ -111,21 +139,29 @@ W - [ ] web browser version
     
     - [x] in cmd - results
   
-  - [ ] see  esult if needed
+  - [ ] see  result if needed
     
     - [x] in cmd - results
+
+- [ ] mark exitCode
   
-  - [ ] mark exitCode
-    
-    - [x] in cmd - results
+  - [x] in cmd - results
+
+- [ ] get result if needed to widget / channel No
   
-  - [ ] get result if needed to widget / channel No
+  - [x] in widget - results 
+  
+  - [ ] pimp this step !!!
+
+- [ ] handle `read -r` from bash
 
 - [ ] from Baking recipe
   
   - [ ] need to hide / show on edit mode 
   
   - [x] now can save to channel 
+  
+  - [ ] need to ask if overrite?
   
   - [x] in subs CookBooks
 
@@ -134,10 +170,10 @@ W - [ ] web browser version
   - [ ] cleaning logs is iffi
 
 - [ ] valType scripts at server site / shs
+  
+  * subject of sponing small c custom valType apps ? 
 
 - [ ] common cookbok with set arguments types to use: shs scripts?
-
-- [ ] handle `read -r` from bash
 
 - [ ] process kill when client leavs
 
@@ -145,7 +181,7 @@ W - [ ] web browser version
 
 - [ ] wrapper to server site
 
-- [ ] directory layout for config
+- [x] directory layout for config
   
   - [x] cookBook swapping
 
