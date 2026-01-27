@@ -181,7 +181,7 @@ pennding now:</pre>
 
 
 
-
+<div style="position:relative;">
 <OvGroup
     :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'">
 
@@ -189,6 +189,17 @@ pennding now:</pre>
         dir data not loaded ...
     </div>
     <div v-else>
+    
+    
+        <a @click="onQeryOvenDirUpdate()"
+            title="Clean all logs entries"
+            style="position:absolute;right:10px;top:4px;"
+            ><i class="fa-solid fa-retweet"></i>
+        </a>
+    
+        
+    
+    
         <OvDir
             :dir="oven.dir" 
             :adressUrl="oven.adressUrl"
@@ -199,7 +210,7 @@ pennding now:</pre>
     </div>
 
 </OvGroup>
-
+</div>
 
 
 
@@ -671,6 +682,39 @@ methods:{
             // scroll to #Baking_recipe
             document.getElementById('baking_recipe').scrollIntoView({ behavior: 'smooth' })
 
+        }else if( data.action == 'sub' ){
+                                   
+            let nAdre = this.oven.adressUrl;
+            
+            if( data.chNo == -1 ){
+                nAdre = this.oven.adressUrl.substring( 0, nAdre.lastIndexOf('/')-1 );
+                console.log('[oven] will swap CookBook [ .. ] back  nAdre',nAdre); 
+            }else{
+                nAdre+= '/'+data.chNo;
+                console.log('[oven] will swap CookBook [ .. ] forvard  nAdre',nAdre); 
+            }
+            
+            
+            
+            // check if need to load dir by adressUrl
+            if( nAdre in this.oven.dir ){
+                console.log('[oven] will swap CookBook target ... OK nAdre');
+                this.oven.adressUrl = nAdre;
+            }else{
+
+                console.log('[oven] will swap CookBook target ... fetching nAdre');
+                this.onQeryOvenDirUpdate( nAdre, r=>{
+                    console.log('[oven] will swap CookBook target ... fetching DONE nAdre');
+                    this.oven.adressUrl = nAdre;
+                } );
+
+                console.log('[oven] will swap CookBook target ... not ok');
+                return 1;
+            }
+
+
+            
+
         }else{
             TODO
         }
@@ -939,19 +983,21 @@ methods:{
     },
 
 
-    onQeryOvenDirUpdate( adressUrl = ''){
+    onQeryOvenDirUpdate( adressUrl = '', cbOnReady = undefined ){
         console.log('[oven] onQeryOvenDirUpdate -> [ '+adressUrl+' ]' );
-        this.onDoFetch( '/apis/oven/dirUpdate' ,{
+        this.onDoFetch( '/apis/oven/dirUpdate'+adressUrl ,{
             'onReady':(r)=>{
                 
                 //console.log('5678906789   type('+(typeof r)+') len('+r.length+') '+'test: keys: ['+Object.keys(r)+']\n\n'+`[${r[0]}]`)
                 if( r.length != 2 ){ console.error('EE onQeryOvenDirUpdate -> [ '+adressUrl+' ] ... type('+(typeof r)+') len('+r.length+') res:\n',r); }
-                let jdir = JSON.parse( `${r[0]}` );
-                console.log('[oven] onQeryOvenDirUpdate -> [ '+adressUrl+' ] ... onReady ', JSON.stringify( jdir ,null,4) );
+                let jdir = JSON.parse( `${r.join('')}` );
+                console.log('[oven] onQeryOvenDirUpdate -> [ '+adressUrl+' ] ... onReady ', jdir );
                 for( let dKey of Object.keys( jdir ) ){
                     this.oven.dir[ dKey ] = jdir[ dKey ];
                 } 
                 this.getChannelsFreeToArray( adressUrl );
+                if( cbOnReady != undefined )
+                    cbOnReady( r );
            }
                 
        });
@@ -1173,18 +1219,21 @@ methods:{
         let recB64 = btoa( msg ); 
         
         // build bash cmd to do the thing...
-        let cmd = [`echo "# on Save `,
+        let cmd = [
+            `oChanPath="$HOME""/.viteyss/oven${this.oven.adressUrl}/0_ch${this.recipeNow.saveChannelNo}.js"`,
+            `echo "# on Save `,
             `# recipe          [ ${this.recipeNow.rName} ]`,
             `# to channel No    [ ${this.recipeNow.saveChannelNo} ]`,
             `# path             [ ${this.oven.adressUrl} ]`,
+            `# fullPath         [ $oChanPath ]`,
             `#"`,
             '',
-            'if test -e "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js";then',
+            `if test -e "$oChanPath";then`,
             ' echo "# EE target file exist exit 1";exit 1',
             'else',
-            ' echo "# target file OK saving ...."',
-            ' echo "'+recB64+'" | base64 -d > "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js"',
-            ' ls -alh "$HOME""/.viteyss/oven/0_ch'+this.recipeNow.saveChannelNo+'.js"',
+            ' echo "# target file OK saving ....[ $oChanPath ]"',
+            ' echo "'+recB64+'" | base64 -d > "$oChanPath"',
+            ' ls -alh "$oChanPath"',
             'fi',
             '',
             'echo "## ITS OK ##',

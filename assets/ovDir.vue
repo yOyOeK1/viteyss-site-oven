@@ -2,9 +2,14 @@
 
 <pre>
 title:      [ {{ dir[ adressUrl ]['layout']['title'] }} ]
-dir:        [ {{  adressUrl }} ]
-subs: <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']">[{{ sDiri}}]:{{sDir}} </span>
+adressUrl:  [ {{  adressUrl }} ]
+subs: <span> <a @click="onChannelAction( -1, 'sub' )">[ .. ]</a> </span> | <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']"><a @click="onChannelAction( sDir, 'sub' )">[{{ sDiri }}] {{ sDir }}</a> | </span>
 channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dir[ adressUrl ]['layout']['jIn']['channels'] }} ]
+
+
+ini dir:    <span v-for="dn in Object.keys(dir)">
+    * [{{dn}}] </span>
+
 </pre>
 
 
@@ -21,7 +26,7 @@ channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} 
     >
 
     <div v-if=" Object.keys(ch).length == 0 ">
-        [ {{ chi }} ] 
+        [{{ chi }}] 
 
     </div>
 
@@ -43,7 +48,7 @@ channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} 
         </div> 
 
         <div style="display: table-cell;">
-            [ {{ chi }} ] 
+            [{{ chi }}] 
             - {{ ch['rName'] }}<pre v-if="dir[ adressUrl ]['layout']['channels'][ chi ]['sp']" v-html="JSON.stringify(dir[ adressUrl ]['layout']['channels'][ chi ]['sp'].result,null,4)"></pre>
         </div>
 
@@ -61,7 +66,7 @@ props: [ 'dir', 'adressUrl' ],
 emits: [ 'dir-channel-click' ],
 methods:{
     onChannelAction( chNo, action = 'click' ){
-        if( [ 'click', 'edit' ].indexOf( action ) != -1 ){
+        if( [ 'click', 'edit', 'sub' ].indexOf( action ) != -1 ){
             //let ch =  dir[ adressUrl ]['layout']['channels'][ chNo ];            
             this.$emit('dir-channel-click', { action, 'adressUrl':this.adressUrl, chNo } );
        

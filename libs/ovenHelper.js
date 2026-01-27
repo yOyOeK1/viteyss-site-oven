@@ -2,26 +2,34 @@ import fs from 'fs'
 import path from 'path'
 
 
-function ovenDirToObj( thomePath, dirname, pathBase = undefined ){
+function ovenDirToObj( thomePath, ovenHomeSrcPath, pathBase = undefined ){
     let ovenDir = chkCasheDir( undefined, thomePath );
             
-
-    if( pathBase == undefined)
+    
+    let dirPathScan = thomePath;
+    if( pathBase == undefined){
         pathBase = thomePath;
+
+    }else{
+        dirPathScan = path.join( thomePath, pathBase );
+    }
     
     if( ovenDir.length == 0 ){
-        ovenDirEmpty( thomePath, dirname ); // adres to src of over for defs
+        ovenDirEmpty( thomePath, ovenHomeSrcPath ); // adres to src of over for defs
         ovenDir = chkCasheDir( undefined, thomePath );        
     }
+
+    ovenDir = fs.readdirSync( dirPathScan );
+
 
     let layoutR = ovenDir.findIndex( fName => fName == '0_layout.js' );
     let layoutName = layoutR == -1 ? {} : JSON.parse( fs.readFileSync( path.join( thomePath, '0_layout.js' ) ).toString() );
 
     let ovenObj = {
-        'layout': ovenLayoutToObjectFromJson( layoutName, thomePath ),
+        'layout': ovenLayoutToObjectFromJson( layoutName, dirPathScan ),
         pathBase,
         ovenDir,
-        baseAddres: pathBase.substring( thomePath.length )
+        dirPathScan,
     }; 
 
 

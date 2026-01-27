@@ -31,8 +31,8 @@ class serveroven{
         this.vClients = {};
 
         this.ovenCurrent = undefined;
-        this.ovenURL = undefined;
-        this.ovenTree = undefined;
+        this.adressUrl = undefined;
+        this.dir = undefined;
         this.readHomeCookBook();
     
         
@@ -43,10 +43,11 @@ class serveroven{
     }
 
     readHomeCookBook=()=>{
-        this.ovenCurrent = ovenDirToObj( this.homePath, __dirname );
-        this.ovenURL = '';
-        this.ovenTree = {};
-        this.ovenTree[ this.ovenURL ] = this.ovenCurrent;       
+        this.ovenCurrent = ovenDirToObj( this.homePath, __dirname, '' );
+        this.adressUrl = '';
+        this.dir = {};
+        //this.dir[ this.adressUrl ] = 
+        this.updateDirWith( '', this.ovenCurrent );       
 
     }
 
@@ -202,7 +203,11 @@ class serveroven{
 
 
 
+    updateDirWith=( adressUrl, dirRunObj )=>{
+        this.dir[ adressUrl ] = dirRunObj;
 
+        console.log('[oven] dir now hawe [ '+Object.keys( this.dir ).join(', ')+' ]');
+    }
 
 
     
@@ -261,21 +266,38 @@ class serveroven{
 
             return 0;
 
+        // http://localhost:8080/apis/oven/dir/abc
+        // to get list of current home dir CookBooks ~/.viteyss/oven
+        }else if( sapi.length >=  1 && sapi[0].startsWith('dir') && sapi[0] != 'dirUpdate'  ){
+            this.writeHeadChunke( res );
+            res.write( JSON.stringify(
+                this.dir
+            ) );
+            res.end('\n');
+            return 0;
 
         // http://localhost:8080/apis/oven/dirUpdate
         // to update current home dir CookBooks ~/.viteyss/oven from fs
-        }else if( sapi.length ==  1 && sapi[0] == 'dirUpdate'  ){
+        }else if( sapi.length >=  1 && sapi[0] == 'dirUpdate'  ){
             this.writeHeadChunke( res );
             let tStart = Date.now();
-            this.readHomeCookBook();
-            this.ovenTree['tRebuildHomeCookBook'] = Date.now() - tStart;
+            let si = 0;
+            let nAdressUrl = sapi.filter( se => si++ != 0 ).join('/');
+
+            if( sapi.length > 1 ){
+                nAdressUrl = '/'+nAdressUrl;
+                console.log('[oven] have more? nAdressUrl: [ '+nAdressUrl+' ]  sapi ',sapi);
+            }
+            this.updateDirWith(nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
+            
+            //this.readHomeCookBook();
+            //this.dir['tRebuildHomeCookBook'] = Date.now() - tStart;
             res.write( JSON.stringify(
-                this.ovenTree
+                this.dir
             ) );
             res.end('\n');
             console.log('[oven] -> dirUpdate - CookBook in '+( (Date.now() - tStart)/1000 )+' sec.');
             return 0;
-
 
 
         // http://localhost:8080/apis/oven/QTaskList
@@ -286,17 +308,8 @@ class serveroven{
             ) );
             res.end('\n');
             return 0;
-        
 
-        // http://localhost:8080/apis/oven/dir/abc
-        // to get list of current home dir CookBooks ~/.viteyss/oven
-        }else if( sapi.length >=  1 && sapi[0].startsWith('dir')  ){
-            this.writeHeadChunke( res );
-            res.write( JSON.stringify(
-                this.ovenTree
-            ) );
-            res.end('\n');
-            return 0;
+        
 
         // http://localhost:8080/apis/oven/splog0
         // to get spList [ no ].log        

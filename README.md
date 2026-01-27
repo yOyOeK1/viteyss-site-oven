@@ -38,7 +38,7 @@ stdio is main source of data sourcing for next step
 
 * W percent bar
 
-* [ ] A progress bar ascii
+* [x] A progress bar ascii
 
 * ...
 
@@ -75,6 +75,8 @@ It's possible to set recipe that it can wrapped our product in:
 
 ![](./examples/screen_settingRecipe_26012x.png)
 
+
+
 #### xdoc
 
 Started Beaking recipe is getting some ENV variables to help it to do the things ..
@@ -103,21 +105,33 @@ W - [ ] web browser version
   - [ ] see that it's started - W
     
     - [ ] show type shared | reconnected / not shared - process 
-    - [ ] in cmd - results
+    - [x] in cmd - results
   
   - [ ] see chunks if needed - log 
     
-    - [ ] in cmd - results
+    - [x] in cmd - results
   
   - [ ] see  esult if needed
     
-    - [ ] in cmd - results
+    - [x] in cmd - results
   
   - [ ] mark exitCode
     
-    - [ ] in cmd - results
+    - [x] in cmd - results
   
   - [ ] get result if needed to widget / channel No
+
+- [ ] from Baking recipe
+  
+  - [ ] need to hide / show on edit mode 
+  
+  - [x] now can save to channel 
+  
+  - [x] in subs CookBooks
+
+- [ ] from cmd / cmd - results at bottom as tool
+  
+  - [ ] cleaning logs is iffi
 
 - [ ] valType scripts at server site / shs
 
@@ -132,6 +146,8 @@ W - [ ] web browser version
 - [ ] wrapper to server site
 
 - [ ] directory layout for config
+  
+  - [x] cookBook swapping
 
 ...
 
