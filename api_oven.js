@@ -288,6 +288,7 @@ class serveroven{
                 nAdressUrl = '/'+nAdressUrl;
                 console.log('[oven] have more? nAdressUrl: [ '+nAdressUrl+' ]  sapi ',sapi);
             }
+            
             this.updateDirWith(nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
             
             //this.readHomeCookBook();

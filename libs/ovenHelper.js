@@ -68,11 +68,12 @@ function ovenDirEmpty( thomePath, dirname ){
             chs[ ci ] = JSON.parse( fs.readFileSync( path.join( pathBase, `0_ch${ci}.js` ) ).toString() );
             console.log( '#* channel'+ci+' ... OK ');
         }else{
-            console.log( '#* channel'+ci+' not set ');;
+            console.log( '#* channel'+ci+' not set ');
         }
         
     }
-    let tr = { title: 'is layout TODO',
+    let tr = { 
+        name: 'name' in jIn ? jIn.name : 'D:'+path.basename( pathBase ),
         channels: chs,
         dirList: dirList,
         jIn
