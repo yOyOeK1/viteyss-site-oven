@@ -680,6 +680,7 @@ data(){
 
         modeHistory: [ ovenMode ],
 
+
         oven:{
             working: true,
             ovenMode,
@@ -690,6 +691,7 @@ data(){
             dir: {},
             adressUrl: undefined,
             ovenRuns:[],
+            chsRuns: [],
             isWatching: false,
             watchingIter: -1,
             logs: [],
@@ -948,7 +950,7 @@ methods:{
 
     oven_onSendKill( pid, sigNal ){
         console.log('[oven] cmd0 sendKill to pid: [ '+pid+' ] [ '+sigNal+' ] ' );
-        this.onDoFetch( 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
+        this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
             'onReady':(r)=>{
                 let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven] cmd0 sendKill DONE',cmdRes );
@@ -963,7 +965,7 @@ methods:{
 
     // oven start
     // main featch !
-    onDoFetch( isFromWho, url, 
+    onDoFetch( targetData, isFromWho, url, 
         onCB = { onChunk: undefined, onReady: undefined }, 
         ovenRunEntry = { 
             'onDoFetch_notSetAttr':1, 
@@ -976,6 +978,17 @@ methods:{
             }             
             
         ){
+        
+        if( targetData != undefined ){
+            this.oven.chsRuns.push({
+                targetData,
+                entryDate: Date.now(),
+                ovenRun: ovenRunEntry
+            });
+            console.log('[ovenFetch] targetData defined targetData:',targetData,'\n\n over chsRuns: \n', this.oven.chsRuns );
+        }
+            
+        
         //setTimeout(()=>this.chkWatcher(),500);       
         
         if( !( 'onDoFetch_notSetAttr' in ovenRunEntry ) ){        
@@ -1034,6 +1047,11 @@ methods:{
             .catch(e=>{
                 console.log('[ovenFetch] error 2',e);
             });
+            
+            
+            
+        return ovenRunEntry;
+            
         
     },
     
@@ -1217,8 +1235,8 @@ methods:{
 
     onQeryTasksNow(){
 
-        // this.onDoFetch( '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0' 
-        this.onDoFetch( 'onQeryTasksNow', '/apis/oven/QTaskList',{
+        // this.onDoFetch( undefined, '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0' 
+        this.onDoFetch( undefined, 'onQeryTasksNow', '/apis/oven/QTaskList',{
             'onReady':(r)=>{
                 let j = JSON.parse( r );
                 console.log('[oven] QTaskList result .... ',
@@ -1235,7 +1253,7 @@ methods:{
     onQeryOvenDirUpdate( adressUrl = '', cbOnReady = undefined ){
         console.log('[oven] onQeryOvenDirUpdate -> [ '+adressUrl+' ]' );
         
-        this.onDoFetch( 'onQeryOvenDirUpdate', '/apis/oven/dirUpdate'+adressUrl ,{
+        this.onDoFetch( undefined, 'onQeryOvenDirUpdate', '/apis/oven/dirUpdate'+adressUrl ,{
             'onReady':(r)=>{
                 
                 //console.log('5678906789   type('+(typeof r)+') len('+r.length+') '+'test: keys: ['+Object.keys(r)+']\n\n'+`[${r[0]}]`)
@@ -1257,7 +1275,7 @@ methods:{
 
     onQeryOvenDir( adressUrl = ''){
         console.log('[oven] onQeryOvenDir -> [ '+adressUrl+' ]' );
-        this.onDoFetch( 'onQeryOvenDir', '/apis/oven/dir?'+adressUrl ,{
+        this.onDoFetch( undefined, 'onQeryOvenDir', '/apis/oven/dir?'+adressUrl ,{
             'onReady':(r)=>{
                 if( r.length != 2 ){ console.error('EE onQeryOvenDir -> [ '+adressUrl+' ] ...type('+(typeof r)+') len('+r.length+') res:\n',r); }
                 let j = JSON.parse( `${r[0]}` );
@@ -1307,7 +1325,7 @@ methods:{
         let cmdShB64 = btoa ( this.getCmdEnvHeader()+cmdSh );
         console.log('[oven] on save to history \n#  base64: length ( '+cmdShB64.length+' )\n#  cmd:\n\n'+cmdSh);
         
-        this.onDoFetch( 'onSaveToHistory',  '/apis/oven/cmd0/b64:'+cmdShB64 ,{
+        this.onDoFetch( undefined, 'onSaveToHistory',  '/apis/oven/cmd0/b64:'+cmdShB64 ,{
             'onReady':(r)=>{
                 let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven] on save to history result .... \n',cmdRes );
@@ -1609,7 +1627,8 @@ methods:{
                     this.onOvenCompact_full( 'nooo custom', 
                         cmdPrefix+postProcessCmd.cmd, 
                         postProcessCmd.postProcess, 
-                        recipe.liveSes 
+                        recipe.liveSes,
+                        targetData
                     );
 
                 }, 
@@ -1622,7 +1641,8 @@ methods:{
             this.onOvenCompact_full( 'nooo custom', 
                 cmdPrefix+postProcessCmd.cmd, 
                 postProcessCmd.postProcess, 
-                recipe.liveSes 
+                recipe.liveSes,
+                targetData
             );
 
         }
@@ -1827,7 +1847,7 @@ methods:{
 
 
 
-    onOvenCompact_full( compactName = 'disk space', ownCmd = undefined, ownPost = undefined, liveSes = false ){
+    onOvenCompact_full( compactName = 'disk space', ownCmd = undefined, ownPost = undefined, liveSes = false, targetData = undefined ){
 
         let cmd = undefined;
         let postProcess = undefined;
@@ -1856,7 +1876,10 @@ methods:{
         // final end
         if( cmd != undefined && liveSes == false ){
         
-            this.onDoFetch( 'onOvenCompact_full - ReadyOnly', '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
+            this.onDoFetch(
+                targetData, 
+                'onOvenCompact_full - ReadyOnly', 
+                '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onReady':(r)=>{
                     let cmdRes = this.cunksResult_resultObject( r );
                     let resToPass = cmdRes.res;
@@ -1869,13 +1892,18 @@ methods:{
                     console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
                 }
             });
+            
+            
        
 
         // stream
         }else if( cmd != undefined && liveSes == true ){
         
             let chunkNo = 0
-            this.onDoFetch( 'onOvenCompact_full - kLive', '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
+            let doFetch = this.onDoFetch( 
+                targetData,
+                'onOvenCompact_full - kLive', 
+                '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
                 'onChunk':(r)=>{
                 
                     if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
@@ -1913,6 +1941,7 @@ methods:{
                     
                 }
             });
+            
 
         }else {
             TODO
@@ -1941,7 +1970,7 @@ methods:{
         };
 
 
-        this.onDoFetch( 'onCmdStrTocmdResConole', '/apis/oven/cmd0/b64:'+bta,{
+        this.onDoFetch( undefined, 'onCmdStrTocmdResConole', '/apis/oven/cmd0/b64:'+bta,{
             'onReady':(r)=>{
                 let cmdRes = this.cunksResult_resultObject( r );                
                 console.log('[oven1]  Oven Run CMD -> res .... ',JSON.stringify(cmdRes,null,4) );
@@ -1974,7 +2003,7 @@ methods:{
 
 
     onCmdPredefined(){
-        this.onDoFetch( 'onCmdPredefined', '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0',{
+        this.onDoFetch( undefined, 'onCmdPredefined', '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0',{
             'onReady':(r)=>{
                 console.log('[oven onCmdPredefined] qery tast now result .... ',
                    r

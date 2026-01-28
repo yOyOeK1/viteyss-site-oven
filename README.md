@@ -108,6 +108,8 @@ oWin - window oven manager
 
 - [ ] tui - blessed
 
+- [x] Oven Modes: [ view , cmd , edit , debug ]
+
 #### xdoc
 
 Started Beaking recipe is getting some ENV variables to help it to do the things ..
@@ -144,9 +146,9 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 - [ ] from recipe click
   
-  - [ ] see that it's not run - W
+  - [x] [W] see that it's not run
   
-  - [ ] see that it's started - W
+  - [x] [W]see that it's started 
     
     - [ ] show type shared | reconnected / not shared - process 
     - [x] in cmd - results
@@ -155,7 +157,9 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
     
     - [x] in cmd - results
   
-  - [ ] see  result if needed
+  - [x] see  result if needed
+    
+    TODO - see to much now !
     
     - [x] in cmd - results
 
@@ -166,14 +170,16 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 - [ ] get result if needed to widget / channel No
   
   - [x] in widget - results 
+    
+    TODO - see to much now !
   
   - [ ] pimp this step !!!
+
+- [ ] 
 
 - [ ] handle `read -r` from bash
 
 - [ ] from Baking recipe
-  
-  - [ ] need to hide / show on edit mode 
   
   - [x] now can save to channel 
   

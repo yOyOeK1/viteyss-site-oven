@@ -10,7 +10,16 @@ in dir (cashe):
 
 </pre>
 
-
+<!--
+<div v-if="channelsShow">
+    <OvChannel v-for="ch,chi in channels"
+        :channel="ch"
+        :chi="chi"
+        :adressUrl="adressUrl"
+        @dir-channel-click="onChannelAction( $event.chNo, $event.action )"
+    />
+</div>
+-->
 <div v-for="ch,chi in dir[ adressUrl ]['layout']['channels']"
 
     :style="{
@@ -19,7 +28,7 @@ in dir (cashe):
         padding:'3px',
         margin:'1px',
         'border-radius': '6px',
-        border:'1px solid #ccaadd'
+        border:'3px solid #'+borderColorWorkingStatus( chi )
         }"
     >
 
@@ -66,7 +75,13 @@ in dir (cashe):
 
 </template>
 <script>
+import OvChannel from './ovChannel.vue';
+
+
 export default{
+components: {
+    OvChannel
+},
 inject: [ 'oven' ],
 props: [ 'dir', 'adressUrl' ],
 emits: [ 'dir-channel-click' ],
@@ -75,15 +90,49 @@ data(){
     let lTitle = this.dir[ this.adressUrl ]['layout']['name'];
    
     return {
+        channelsShow: true,
+        channels:[],
         lTitle
     };
     
 },
-mounted(){
 
+watch:{
+    adressUrl(nv,ov){
+        console.log('[ovDir] @@- adressUrl change \n\t* nv: \n', nv );
+        this.channels = this.dir[ `${this.adressUrl}` ]['layout']['channels'];
+        this.channelsShow = false;
+        
+        setTimeout(()=> this.channelsShow = true, 500);
+   
+    }
     
 },
+//mounted(){},
+computed:{
+
+},
 methods:{
+    borderColorWorkingStatus( chNo ){
+        let workList = 0;
+        let doneList = 0;
+        this.oven.chsRuns.forEach( cr => {
+            if( cr.targetData.chNo == chNo && cr.targetData.adressUrl == this.adressUrl ){
+                if( cr.ovenRun.tEnd == undefined )
+                    workList++;
+                else
+                    doneList++;
+            }
+        });
+        
+        
+        if( workList != 0 )
+            return 'aaff00';
+        else if( doneList != 0 )
+            return '00aaff';
+        else
+            return 'ffaa00';
+    },
     onChannelAction( chNo, action = 'click' ){
         if( [ 'click', 'edit', 'sub' ].indexOf( action ) != -1 ){
             //let ch =  dir[ adressUrl ]['layout']['channels'][ chNo ];            
