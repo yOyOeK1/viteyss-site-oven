@@ -9,20 +9,68 @@ pre{
 </style>
 
 <template >
-Working: {{ oven.working  }} ( {{ oven.runNo }} )
+
+<div 
+    style="
+        border-bottom: 5px solid #8d162c;
+        padding: 3px;
+        background-color: rgb(117, 190, 114);;
+        color: white;
+    
+    "
+    >
+
+    <div style="display:inline-block;"
+        >
+        
+         
+        <img :src="homeUrl+'/assets/ico_mafinOven_32_32.png'" alt="Oven - logo">
+       
+        |
+        
+        <button 
+            style="height:32px;border:0px;padding:0px;margin:0px;"
+            title="Previes oven mode"
+            :disabled="!(modeHistory.length > 1)"
+            @click="console.log('modeHistory',mdeHistory);oven.ovenMode = modeHistory[ modeHistory.length - 2 ]; modeHistory.splice(modeHistory.length - 1,1);">
+            <i class="fa-regular fa-circle-left"></i>({{ modeHistory.length }})
+        </button>
+        
+        <select 
+            title="Oven current mode"
+            style="height:32px;"
+            v-model="oven.ovenMode" 
+            @change="onModeSwith( $event.target.value )"
+            >
+            <option v-for="om,omi in oven.ovenModes" :value="om">
+            {{ om }}
+            </option>
+        </select>
+        
+    </div>
+
+    |
+
+    Working: {{ oven.working  }} ( {{ oven.runNo }} )
+
+
+</div>
+
+
 <div class="smallBt aAsLinks" style="color:#000000;">
 
-
-
-<OvGroup v-if="0"
+<OvGroup 
     gtitle="abc gTitle test"
+    v-if="0"
     > 
     abc <b>html</b>
 </OvGroup>
 
 
 <OvGroup
-    gtitle="Exec about host" >
+    gtitle="Exec about host" 
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
     
     |
 
@@ -55,6 +103,7 @@ Working: {{ oven.working  }} ( {{ oven.runNo }} )
     
 <OvGroup
     gtitle="QTaskList - results"
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
     >
     
     <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
@@ -109,7 +158,9 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="## Exec on local" >
+    gtitle="## Exec on local" 
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
 
     |
 
@@ -145,7 +196,9 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="## Tools - dev 1" >
+    gtitle="## Tools - dev 1" 
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
 
     <button 
         title="subscribe to all topics at mqtt"
@@ -162,7 +215,9 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="## Subscribe" >
+    gtitle="## Subscribe" 
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
     
     <button 
         title="e01Mux time left to switch ..."
@@ -183,7 +238,9 @@ pennding now:</pre>
 
 <div style="position:relative;">
 <OvGroup
-    :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'">
+    :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'"
+    v-if="[ 'view', 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
 
     <div v-if="Object.keys( oven.dir ).length == 0">
         dir data not loaded ...
@@ -216,7 +273,9 @@ pennding now:</pre>
 
 
 <OvGroup
-    gtitle="Log">
+    gtitle="Log"
+    v-if="oven.ovenMode == 'view'"
+    >
     <div v-for="w, wIn in oven.logs.reverse()" >
 
 <pre># [ {{ oven.logs.length-wIn }} ] {{ w.title }} [ {{ w.entryDate }} ] 
@@ -230,6 +289,7 @@ pennding now:</pre>
 <div style="position:relative;">
     <OvGroup
         :gtitle="'Cmd - results ( '+oven.screens.cmdResults.asLines.length+' )'"
+        v-if="[ 'cmd', 'debug' ].indexOf( oven.ovenMode ) != -1"
         >
         
         <a @click="oven.screens.cmdResults.isEmpty = true;oven.screens.cmdResults.strDone = '';oven.ovenRuns=[];"
@@ -255,7 +315,8 @@ pennding now:</pre>
 
      
 <OvGroup
-    gtitle="cmd:"
+    gtitle="cmd"
+    v-if="[ 'cmd', 'debug' ].indexOf( oven.ovenMode ) != -1"
     >
 
     <button
@@ -281,7 +342,9 @@ pennding now:</pre>
 
 
 <OvGroup
-    :gtitle="'Oven beaking now'">
+    :gtitle="'Oven beaking now'"
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
     
     <div v-for="or,ori in oven.ovenRuns.reverse()" 
         v-if="ori < 3">
@@ -304,7 +367,9 @@ keys in ovenRun:
 
 
 <OvGroup
-    gtitle="Baking recipe">
+    gtitle="Baking recipe"
+    v-if="oven.ovenMode == 'edit'"
+    >
 
     ## <input type="text" v-model="recipeNow.rName"
         placeholder="Recipe name"
@@ -419,7 +484,7 @@ keys in ovenRun:
 <pre style="padding:5px;">
 <button @click="onProbeSelectorFrom( recipeNow )">Bake recepe</button>
  - OR -
-<div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">Save recipe to:  
+<div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">Save recipe to [ {{ oven.adressUrl }} ]:  
 <select v-model="recipeNow.saveChannelNo" 
     title="Save is free channel"
     >
@@ -442,8 +507,125 @@ keys in ovenRun:
 </OvGroup>
 
 
-<div>status ... oven</div>
-<div>---</div>
+<OvGroup
+    gtitle="#### DEBUG Icon test set"
+    v-if="[ 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
+
+
+    <i class="fa-regular fa-circle-play"></i>
+    <i class="fa-regular fa-circle-stop"></i>
+    <i class="fa-regular fa-circle-pause"></i>
+    <i class="fa-regular fa-circle-xmark"></i>
+    |
+    <i class="fa-regular fa-circle-up"></i>
+    <i class="fa-regular fa-circle-down"></i>
+    |
+    <i class="fa-regular fa-circle-check"></i>
+    <i class="fa-regular fa-circle-xmark"></i>
+    |
+    <i class="fa-solid fa-circle-check"></i>
+    <i class="fa-solid fa-circle-xmark"></i>
+
+    |<br>
+
+    <i class="fa-solid fa-play"></i>
+    <i class="fa-solid fa-stop"></i>
+    <i class="fa-solid fa-pause"></i>
+    <i class="fa-solid fa-xmark"></i>
+    |
+    <i class="fa-solid fa-angles-up"></i>
+    <i class="fa-solid fa-angles-down"></i>
+    |
+    <i class="fa-solid fa-gauge"></i>
+    <i class="fa-solid fa-gauge-high"></i>
+    |
+    <i class="fa-solid fa-check"></i>
+    <i class="fa-solid fa-xmark"></i>
+
+
+    |<br>
+
+
+
+    <div style="border:solid 1px orange;">
+
+        <a @click=""
+            title="Execute / bake it ...">
+            <i class="fa-solid fa-square-caret-right"></i>
+        </a>
+        <a @click=""
+            title="Stop / pause process">
+            <i class="fa-solid fa-stop"></i>
+        </a>
+        <a @click=""
+            title="Resume process">
+            <i class="fa-solid fa-pause"></i>
+        </a>
+        <a @click=""
+            title="Kill process">
+            <i class="fa-solid fa-square-xmark"></i>
+        </a>
+        |
+        <a @click=""
+            title="Change priopity to high">
+            <i class="fa-regular fa-square-caret-up"></i>
+        </a>
+        <a @click=""
+            title="Change priopity to low">
+            <i class="fa-regular fa-square-caret-down"></i>
+        </a>
+        |
+        <i style="color:rgb(104, 141, 22);" 
+            class="fa-solid fa-square-check"
+                title="Process exitCode 0"
+        
+        
+            ></i>
+        <i class="fa-solid fa-cube"></i>
+            
+        <i style="color:rgb(218, 0, 0);"
+            class="fa-solid fa-square-xmark"
+            title="Process exit with error"
+        ></i>
+
+    </div>
+    |<br>
+
+
+    <i class="fa-solid fa-square-xmark"></i>
+    <i class="fa-solid fa-square-h"></i>
+    <i class="fa-regular fa-square-caret-right"></i>
+    &nbsp;&nbsp;&nbsp;
+    |
+    <i class="fa-regular fa-square-caret-up"></i>
+    <i class="fa-regular fa-square-caret-down"></i>
+    |
+    <i class="fa-solid fa-square-check"></i>
+    <i class="fa-solid fa-square-xmark"></i>
+    |
+    <i class="fa-regular fa-square-check"></i>
+    <i class="fa-regular fa-square-xmark"></i>
+
+
+    |<br>
+
+    <i class="fa-solid fa-square-share-nodes"></i>
+    <i class="fa-solid fa-square-share-nodes"></i>
+    <i class="fa-solid fa-recycle"></i>
+    <i class="fa-solid fa-check"></i>
+
+
+
+    |<br>
+
+    <i class="fa-brands fa-node-js"></i>
+    <i class="fa-solid fa-hexagon-nodes"></i>
+    <i class="fa-solid fa-hashtag"></i>
+
+
+
+</OvGroup>
 
 
 
@@ -463,6 +645,7 @@ import OvDir from './ovDir.vue';
 
 
 export default{
+props: [ 'homeUrl' ],
 components:{
     'OvGroup': ovGroup,
     'OvDir': OvDir    
@@ -478,18 +661,29 @@ mounted(){
 unmounted(){
     console.log('[oven] unmounted. ...');
 },
+
+provide(){
+    return {
+        'oven': this.oven,
+    };
+},
 data(){   
 
-    return {
+    let ovenMode = 'debug';
 
-        
+
+    return {
 
         iterators: [],
 
         freeChannels: [],
 
+        modeHistory: [ ovenMode ],
+
         oven:{
             working: true,
+            ovenMode,
+            ovenModes: [ 'view', 'cmd', 'edit', 'debug' ],    
             runsNo: 0,
             tUpdate: undefined,
             spList: undefined,
@@ -529,6 +723,7 @@ data(){
             },
             
             screens:{
+                groups:{},
                 cmdResults:{
                     isEmpty:true,
                     asLines:"",   
@@ -567,10 +762,20 @@ data(){
 methods:{
 
 
+    
 
 
 
     // screen render ---- START
+    
+            
+    onModeSwith( targetModeName , onDone = undefined ){
+        this.modeHistory.push( `${this.oven.ovenMode}` );
+        this.oven.ovenMode = targetModeName;        
+        if( onDone != undefined ) onDone();
+    
+    },
+    
     
     
     getScreen( sName = 'cmdResults' ){
@@ -681,8 +886,10 @@ methods:{
             let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
             if( this.oven.cmdHistory.findIndex( c => c == chObj.topicAddress ) == -1 )
                 this.oven.cmdHistory.push( chObj.topicAddress );
-
-            this.recipeNow =  chObj;
+            
+            this.onModeSwith( 'edit' , done => {
+                this.recipeNow =  chObj;
+            } );
 
             // scroll to #Baking_recipe
             document.getElementById('baking_recipe').scrollIntoView({ behavior: 'smooth' })

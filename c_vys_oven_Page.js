@@ -5,7 +5,7 @@ import ovenApp from './assets/ovenApp.vue';
 class s_vysovenPage{
 
   constructor(){
-    this.ovenApp = createApp( ovenApp );
+    this.ovenApp = undefined;
     
     this.package = process.env.vy_config.pathsToSitesPackages.find( s=>{ 
       //console.log('2qest package site -> ',s);
@@ -25,11 +25,16 @@ class s_vysovenPage{
   }
   
   getHtml = () => {
+    this.ovenApp = createApp( ovenApp, {
+        homeUrl: this.homeUrl 
+    });
 
-    return `<img src="${this.homeUrl}assets/ico_mafinOven_32_32.png"
+    return `
+     <!--
+    <img src="${this.homeUrl}assets/ico_mafinOven_32_32.png"
       alt="Oven - logo">
     <b>${this.getName}</b>
-    <!--
+   
     This is a npm package<br>
     viteyss-site-oven<br>
     <pre>

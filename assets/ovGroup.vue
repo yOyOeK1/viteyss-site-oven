@@ -1,7 +1,13 @@
 <template>
 
 
-<section :id="gtitle.toLowerCase().replaceAll('#','_').replaceAll(' ','_')">
+
+<section :id="gtitle.toLowerCase().replaceAll('#','_').replaceAll(' ','_')"
+    v-if="showIt"
+    >
+    
+    
+    
 <div :style="`
     border: solid ${ isDepth > 4 ? '#dcb ' : 'gray' } 2px; 
     border-radius: 7px;
@@ -14,6 +20,7 @@
         : 
         '' 
         )+`
+    ${modeStyle}
     `">
     
     <!--
@@ -33,10 +40,7 @@
 
         ">
         
-        <span v-if="isDepth > 2">[{{ isDepth }}]{{ gtitle }}<br></span>
-        <span v-else>
-            <b>[{{ isDepth }}]# {{ gtitle }}</b><br>    
-        </span>
+        <span>{{ gTitle }}<br></span>
 
     </div>
 
@@ -47,13 +51,41 @@
 </template>
 <script>
 export default{
+
+inject: [ 'oven' ],
 props: [ 'gtitle' ],
 data(){
-    return {
-        isDepth: `${this.gtitle}`.split('#').length
+
+    let isDepth = `${this.gtitle}`.split('#').length;
+    let gTitle = `[${ isDepth }]`+(isDepth > 2 ? '# ' : ' ') + this.gtitle;
     
+    return {
+        showIt:true,
+        
+        modeNow: 'normal',
+        modeStyle: '',
+        
+        title: this.gtitle.replaceAll('# ','').replaceAll('#',''),
+        gTitle,
+        isDepth,
+        entryDate: Date.now()    
     };
 
 },
+mounted(){
+    console.log('[ovGroup mount] set screen * gTitle: ', this.title);
+    this.oven.screens.groups[ this.gTitle ] = { 
+        
+        title: `${this.title}`,
+        gTitle: `${this.gTitle}` ,
+        entryDate: this.entryDate
+        
+    };
+    
+    //console.log('[ovGroup mount] set screen \n\t* this.screens.groups: ', this.oven.screens.groups );
+
+
+},
+
 }
 </script>

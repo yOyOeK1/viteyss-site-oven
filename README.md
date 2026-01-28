@@ -1,6 +1,6 @@
 # viteyss-site-oven
 
-![](./assets/ico_mafinOven_64_64.png) Oven is a define recipe / set ingreadiance / post-process / wrap it ... Beaking place 
+![](./assets/ico_mafinOven_64_64.png) Oven is a define recipe / set ingreadiance / post-process / wrap it ... Bakeing place 
 
 gui for bash with some rerouting.
 
@@ -14,11 +14,9 @@ So Cook Book holds sets of recipes. For something what I want / need to do.
 
 * instance execution of your recipe
 
-* fast command test place with option to store it as channel in CookBook, local cmd history / favorite store in file in current CookBook 
+* fast command test place 
 
-* battery alert if battery to low show toast
-
-* button to add record to database
+* CookBook local cmd history / favorite
 
 * ...
 
@@ -35,17 +33,17 @@ stdio is main source of data sourcing for next step
 [W] - [ ] web browser version
 ```
 
-* [A] raw - array line by line of result or chunks
+* [A] `raw` - array line by line of result or chunks
 
-* [x] [A] toString - to string join with `\n`
+* [x] [A] `toString` - to string join with `\n`
 
-* [A] secLeft - sec left / since 
+* [A] `secLeft` - sec left / since 
 
-* [W] percent - jQery donuts like visualization
+* [W] `percent` - `jQuery` donuts like visualization
 
-* [W] percent bar - html like progress bar 
+* [W] `percent bar` - `html` progress bar 
 
-* [x] [A] progress bar ascii - ascii like progress bar 
+* [x] [A] `progress bar ascii` - `ascii` progress bar 
 
 * ...
 
@@ -55,20 +53,16 @@ Then it's passing it to wrapping section ...
 
 It's possible to set recipe that it can wrap product in a:
 
-* [W] toast - temporary popup on screen in corner
+* [W] `toast` - temporary popup on screen in corner
 
-* external x-terminal-emulator
+* `external x-terminal-emulator`
 
-* [W] log
+* [W] `log`
 
 * [ ] widget / channel of recipe it self ( almost ) 
-- [ ] to ENV as variable
+- [ ] to `ENV` as variable
 
 - [ ] to trigger other channel
-
-
-
-
 
 #### screenshoot
 
@@ -94,13 +88,17 @@ Since there is working CookBook 's swapping option. In allows now to have unlimi
 
 ###### default installation:
 
-It comse with some presets to start with creating your own e
+It comses with some presets to start with creating your own e
 
-- [x] root CookBook - debug scripts to start ....
-  
-      - [x] system notification ( gnome or make recipe with args )
+root CookBook - debug scripts to start ....
 
-- [x] oWin - window oven manager
+- battery alert if battery to low show toast
+
+- button to add record to database
+
+- system notification ( gnome or make recipe with args )
+
+oWin - window oven manager
 
 ###### Oven look - layouts
 
@@ -124,7 +122,25 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
   
   - [x] `oven_my_rName`
 
+- [x] `onModeSwith(targetModeName, onDone )` - to prompt and to add to history
+
 #### notes
+
+- [ ] ovenApp provide `oven`
+
+- [x] ovenApp now init in getHtml and have now own icon bar with ...
+
+- [x] mode oven switcher [ view, cmd, edit, debug ] with back option
+
+- [x] ovGroup can show / hide 
+
+- [x] ovGroup can get `modeStyle` as string to force style
+
+- [x] ovGroup now register it'self 
+
+- [x] ovGroup - Icon set to test actions with process
+
+- [ ] ovDir - now have lTitle
 
 - [ ] from recipe click
   

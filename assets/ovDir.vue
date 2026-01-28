@@ -1,8 +1,8 @@
 <template>
 
 <pre>
-title:      [ {{ dir[ adressUrl ]['layout']['name'] }} ]
-adressUrl:  [ {{  adressUrl }} ]
+title:      [ {{ lTitle }} ]
+adressUrl:  [ {{  adressUrl }} ] 
 subs: <span> <a @click="onChannelAction( -1, 'sub' )">[ .. ]</a> </span> | <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']"><a @click="onChannelAction( sDir, 'sub' )">[{{ sDiri }}] {{ sDir }}</a> | </span>
 channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dir[ adressUrl ]['layout']['jIn']['channels'] }} ]
 in dir (cashe):    
@@ -27,6 +27,9 @@ in dir (cashe):
         [{{ chi }}] 
 
     </div>
+
+    
+
 
     <div v-else
         style="min-height: 15px;">
@@ -64,8 +67,22 @@ in dir (cashe):
 </template>
 <script>
 export default{
+inject: [ 'oven' ],
 props: [ 'dir', 'adressUrl' ],
 emits: [ 'dir-channel-click' ],
+data(){
+
+    let lTitle = this.dir[ this.adressUrl ]['layout']['name'];
+   
+    return {
+        lTitle
+    };
+    
+},
+mounted(){
+
+    
+},
 methods:{
     onChannelAction( chNo, action = 'click' ){
         if( [ 'click', 'edit', 'sub' ].indexOf( action ) != -1 ){
