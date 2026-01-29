@@ -376,44 +376,43 @@ keys in ovenRun:
         ></input><br></br>
 
 
-    * <input type="checkbox" v-model="recipeNow.autoStart"
+    * <img :src="homeUrl+'./assets/ico_autoStart_22_22.png'">
+    <input type="checkbox" v-model="recipeNow.autoStart"
         id="recreconAutoStart"></input>
     <label for="recreconAutoStart"
         style="display: inline;">
         auto start TODO
     </label><br>
 
-    * setENV variable: 
-    <span style="color:white">
+
+    * <i class="fa-regular fa-headphones"
+        title="So if EVN viariable will update it will be callBack"
+        ></i> 
+        getENV variable: TODO<br></br>
+    &nbsp;&nbsp;
+        <span style="color:white">
         <TagsColector
             :idIdentName="11"
-            :tags="recipeNow.setENV"
-            @tags-colector-add="onEmit_tagsAdd_setENV"
-            @tags-colector-remove-index="onEmit_tagRemove_setENV"
+            :tags="recipeNow.getENV"
+            @tags-colector-add="onEmit_tagsAdd_getENV"
+            @tags-colector-remove-index="onEmit_tagRemove_getENV"
             />
     </span>
+    <br>
 
-    <!--
-    * <input type="checkbox" v-model="recipeNow.setENV"
-        id="recreconSetENV"></input>
-    <label for="recreconSetENV"
-        style="display: inline;">
-        as ENV variable TODO
-    </label>
-    --><br>
-
+    
     * <input type="checkbox" v-model="recipeNow.sharedSession"
     id="recShaSel"></input>
     <label for="recShaSel"
         style="display: inline;">
-        shared task
+        shared task TODO
     </label><br></br>
 
     * <input type="checkbox" v-model="recipeNow.onlyWhenImOnline"
         id="reconlWheImOn"></input>
     <label for="reconlWheImOn"
         style="display: inline;">
-        kill after disconnect
+        kill after disconnect TODO
     </label><br>
 
     <br></br>
@@ -422,7 +421,9 @@ keys in ovenRun:
 
     <br>
 
-    * protocal: <!-- <br></br>
+    * <i class="fa-solid fa-kitchen-set"></i>
+        protocal:<br></br>
+            &nbsp;&nbsp; <!-- <br></br>
     <input type="text" v-model="recipeNow.mediumProtocal"></input>-->
     <select v-model="recipeNow.mediumProtocal">
         <option v-for="procal,pci in oven.opts.mediumProtocal" :value="procal">
@@ -432,13 +433,19 @@ keys in ovenRun:
     
 
     <div v-if="recipeNow.mediumProtocal == 'mqtt'">
-        * topic adres:
-        <input type="text" v-model="recipeNow.topicAddress"></input><br></br>
+        * <i class="fa-regular fa-address-card"></i>
+            topic adres:<br></br>
+                &nbsp;&nbsp;
+        <input type="text" v-model="recipeNow.topicAddress"
+            placeholder="/and/+/res"></input><br></br>
     </div>
     <div  v-else-if="recipeNow.mediumProtocal == 'cmd'">
-        * command:
+        * <img :src="homeUrl+'./assets/ico_command_22_22.png'">
+            command:
+                &nbsp;&nbsp;
+
         <select @change="recipeNow.topicAddress = $event.target.value">
-            <option value="0">- - -</option>
+            <option value="0">[⠺] - - -</option>
             <option v-for="cmdH,cmdI in oven.cmdHistory"
                 :value="cmdH"
                 :selected="recipeNow.topicAddress == cmdH"
@@ -452,7 +459,9 @@ keys in ovenRun:
 
 
 
-    * type of value:<!--<br></br>
+    * <i class="fa-solid fa-utensils"></i>
+        type of value:
+            &nbsp;&nbsp;<!--<br></br>
     <input type="text" v-model="recipeNow.valType"></input>-->
     <select v-model="recipeNow.valType">
         <option v-for="valtyp,vti in oven.opts.valType" :value="valtyp">
@@ -460,13 +469,32 @@ keys in ovenRun:
         </option>
     </select><br></br>
 
-    * wrapper it in:<!--<br></br>
+    * <img :src="homeUrl+'assets/ico_tacos_22_22.png'">
+        wrapper it in:<br></br>
+            &nbsp;&nbsp;<!--<br></br>
     <input type="text" v-model="recipeNow.wrapType"></input>-->
     <select v-model="recipeNow.wrapType">
         <option v-for="wratyp, wti in oven.opts.wrapType" :value="wratyp">
             [ {{ wti }} ]: {{ wratyp }}
         </option>
     </select><br></br>
+
+
+    * <i class="fa-solid fa-volcano"
+        title="So result will be set as define in ENV"
+        ></i> 
+        setENV variable: <u>SOME setsome ...</u> <br>
+             &nbsp;&nbsp;
+        <span style="color:white">
+        <TagsColector
+            :idIdentName="11"
+            :tags="recipeNow.setENV"
+            @tags-colector-add="onEmit_tagsAdd_setENV"
+            @tags-colector-remove-index="onEmit_tagRemove_setENV"
+            />
+    </span>
+    <br></br>
+
 
     * <input type="checkbox" v-model="recipeNow.liveSes"
     id="recLivSes"></input>
@@ -480,7 +508,8 @@ keys in ovenRun:
 
 
     <div v-if="recipeNow.liveSes == false">
-        * interval every: 
+        * interval every:<br></br>
+            &nbsp;&nbsp; 
         <input type="number" min="1" max="600" step="1" v-model="recipeNow.intervalEverySec" >
         ( .sec )<br></br>
         <pre><small>0 - no interval </small></pre>
@@ -493,23 +522,24 @@ keys in ovenRun:
     
     ## toping action
 <pre style="padding:5px;">
-<button @click="onProbeSelectorFrom( recipeNow )">Bake recepe</button>
+<button @click="onProbeSelectorFrom( recipeNow )"><i class="fa-solid fa-fire-burner"></i> Bake recepe</button>
  - OR -
 <div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">Save recipe to [ {{ oven.adressUrl }} ]:  
 <select v-model="recipeNow.saveChannelNo" 
     title="Save is free channel"
     >
-    <option value="-1">ch - </option>
+    <option value="-1">[⠺] - select channel to stor in ...</option>
     <option v-for="ch in getChannelFrom( oven.adressUrl ).length"
         :value="ch-1"
         :selected="false"
         >
-        ch [ {{ch-1}} ] {{freeChannels[ ch-1 ] }}
+        [{{ch-1}}] - {{freeChannels[ ch-1 ] }}
     </option>
 </select>
 <button
+    :disabled="recipeNow.saveChannelNo=='-1'"
     title="Save recipe" 
-    @click="onSaveSelectorFrom()">Save to file</button>
+    @click="onSaveSelectorFrom()"><i class="fa-regular fa-floppy-disk"></i>Save to file</button>
 </div></pre>        
 
     
@@ -656,6 +686,7 @@ import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
 import OvDir from './ovDir.vue';
 import TagsColector from '@UiAssets/tagsColector.vue';
+import { getDefRecipe, ODdataWrapType } from '../libs/ovenDefinitions';
 
 
 
@@ -686,7 +717,7 @@ provide(){
 },
 data(){   
 
-    let ovenMode = 'debug';
+    let ovenMode = 'edit';
 
 
     return {
@@ -735,7 +766,7 @@ data(){
                     ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'toString', 'secLeft', 'percent', 'percent bar', 'A progress bar',
+                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A progress bar', 
                     // submit
                     'input text submit TODO',
                     'input list select submit TODO', 
@@ -760,26 +791,7 @@ data(){
             
         },
 
-        recipeNow:{
-            autoStatr: false,   // TODO
-            //hidden: false,      // TODO no .rName - cia 
-            setENV: [],      // TODO so result set ENV of session / client see 
-
-            mediumProtocal:'cmd', 
-            topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
-            rName: 't01', 
-            valType: 'raw',
-            wrapType: 'toast',
-            liveSes: false,
-            intervalEverySec: 0,
-            
-            iterator: -1,
-            sharedSession: true,
-            onlyWhenImOnline: false,
-            
-            saveChannelNo: -1,
-            
-        },
+        recipeNow: getDefRecipe( '', 't01' ),
         
     
     };
@@ -1230,9 +1242,9 @@ methods:{
             if( !( 'rName' in chnow[ ci ] ) ){
                 console.log('[oven] ch '+ci+' ... ', chnow[ ci ] );
             
-                this.freeChannels.push( 'free' ); 
+                this.freeChannels.push( '- - - free - - -' ); 
             }else{
-                this.freeChannels.push( 'overrite' );
+                this.freeChannels.push( chnow[ ci ].rName );
             }
             
         }
@@ -1404,7 +1416,7 @@ methods:{
     },
 
 
-    msgWrapInType( msg, wrapType, targetData = undefined ){
+   msgWrapInType( msg, wrapType, targetData = undefined ){
         if( wrapType == 'toast' ){
             this.msgWrapInToast( msg );
 
@@ -1416,9 +1428,6 @@ methods:{
         }else if( wrapType == 'widget' ){
             if( targetData == undefined )
                 this.msgWrapInLog( msg );
-            
-
-        
 
         }else if( wrapType == 'terminal' ){
             console.log(`[oven] msg wrap go to terminal ...`, msg );
@@ -1428,8 +1437,10 @@ methods:{
             return 1;
         }
 
+        
         if( targetData == undefined )
             this.msgWrapInLog( msg );
+
         else{
             console.log('[over] wrap update channel]');
             let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
@@ -1442,6 +1453,8 @@ methods:{
 
     },
 
+
+    /*
     dataWrapType( title, data, valType ){
         console.log('[oven data wrap]('+valType+') ... data typeof ('+(typeof data)+') isArray: ['+Array.isArray( data )+'] \n\ndata:\n',data);
     
@@ -1557,7 +1570,7 @@ methods:{
         
         
     },
-
+    */
 
 
 
@@ -1570,6 +1583,16 @@ methods:{
     },        
     onEmit_tagRemove_setENV( index ){
         this.recipeNow.setENV.splice( parseInt( index ), 1 );
+    },
+
+    onEmit_tagsAdd_getENV( event ){
+        console.log('[oven] recipe getENV ... event: ',event,'\n\n recipeNow',this.recipeNow);
+        this.recipeNow.getENV.push( `${event}` );
+        this.recipeNow.getENV.sort();
+
+    },        
+    onEmit_tagRemove_getENV( index ){
+        this.recipeNow.getENV.splice( parseInt( index ), 1 );
     },
 
 
@@ -1634,34 +1657,18 @@ methods:{
         // update oven dir if all ok
 
     },
-   
+    
+
+    
+
 
     onBeakTheRecipe_asLocalOvenTask( taskName = '', cmd = '' ){
         console.log(`[oven] onBeakTheRecipe_asLocalOvenTask taskName:`,taskName);
         if( taskName == '' || cmd == '' ){
             console.log('[oven] EE onBeakTheRecipe_asLocalOvenTask need to have taskName and cmd');
             return 0;
-        }
-        
-        let defRecipe = {
-            "autoStatr": false,
-            "setENV": [],
-            "mediumProtocal": cmd,
-            "topicAddress": "env | grep \"^oven\"",
-            "rName": taskName,
-            "valType": "raw",
-            "wrapType": "log",
-            "liveSes": false,
-            "intervalEverySec": 0,
-            "iterator": -1,
-            "sharedSession": false,
-            "onlyWhenImOnline": true,
-            "saveChannelNo": taskName,
-            
-        };
-        
-        this.onProbeSelectorFrom( defRecipe );
-        
+       }
+       this.onProbeSelectorFrom( getDefRecipe( cmd, taskName, taskName ) );
     },
 
     onProbeSelectorFrom( recipe, targetData = undefined ){
@@ -1772,7 +1779,7 @@ methods:{
                     if( resToProcess ){
                             try{
                             */
-                                let msgToSend = this.dataWrapType( '', resToProcess, valType );
+                                let msgToSend = ODdataWrapType( '', resToProcess, valType );
                                 console.log('[oven 6789 - '+valType+'] resToProcessALL ->',r,"\n\t msg to send\n", msgToSend);
                                 this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
@@ -1790,7 +1797,7 @@ methods:{
                     resToProcess.forEach( r => {
                         if( r ){
                             try{
-                                msgToSend = this.dataWrapType( '', r, valType );
+                                msgToSend = ODdataWrapType( '', r, valType );
                                 console.log('[oven 6789 - '+valType+'] resToProcessLineByLine ->',r,"\n\t msg to send\n", msgToSend);
                                 this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
