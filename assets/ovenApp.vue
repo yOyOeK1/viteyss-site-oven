@@ -383,13 +383,24 @@ keys in ovenRun:
         auto start TODO
     </label><br>
 
-    
+    * setENV variable: 
+    <span style="color:white">
+        <TagsColector
+            :idIdentName="11"
+            :tags="recipeNow.setENV"
+            @tags-colector-add="onEmit_tagsAdd_setENV"
+            @tags-colector-remove-index="onEmit_tagRemove_setENV"
+            />
+    </span>
+
+    <!--
     * <input type="checkbox" v-model="recipeNow.setENV"
         id="recreconSetENV"></input>
     <label for="recreconSetENV"
         style="display: inline;">
         as ENV variable TODO
-    </label><br>
+    </label>
+    --><br>
 
     * <input type="checkbox" v-model="recipeNow.sharedSession"
     id="recShaSel"></input>
@@ -546,10 +557,12 @@ keys in ovenRun:
 
     |<br>
 
+    <OvGroup
+        gtitle="process action button set"
+        v-if="oven.ovenMode == 'debug'"
+        >
 
-
-    <div style="border:solid 1px orange;">
-
+    
         <a @click=""
             title="Execute / bake it ...">
             <i class="fa-solid fa-square-caret-right"></i>
@@ -589,7 +602,8 @@ keys in ovenRun:
             title="Process exit with error"
         ></i>
 
-    </div>
+    
+    </OvGroup>
     |<br>
 
 
@@ -641,6 +655,7 @@ import { ref } from 'vue';
 import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
 import OvDir from './ovDir.vue';
+import TagsColector from '@UiAssets/tagsColector.vue';
 
 
 
@@ -648,8 +663,10 @@ export default{
 props: [ 'homeUrl' ],
 components:{
     'OvGroup': ovGroup,
-    'OvDir': OvDir    
+    'OvDir': OvDir,
+    "TagsColector": TagsColector,
 },
+
 mounted(){
     setTimeout(()=>{
         console.log('[oven] mounted ... setting adressUrl: ""');
@@ -704,6 +721,7 @@ data(){
                 `free | grep Mem | awk '{print ($3/$2)*100.00}'`, // to percent rame use
                 `acpi -b | awk '{print $4}' | replace '%,' ''`, // # batery local status
                 '../viteyss-site-oven/ovenDef/0_ch_sqlite3_select.sh "tab1" "/tmp/dbTab1.db"', // # sqlite3 slection
+                'ls -al ./ | awk \'{print $5"\\n - "$9}\''
             ],
             
             
@@ -712,14 +730,20 @@ data(){
             ],
 
             opts:{
-                mediumProtocal: [ 'mqtt', 
-                    'cmd' ], 
+                mediumProtocal: [ 'mqtt', 'cmd',
+                    'sqlite3 TODO',
+                    ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'toString', 'secLeft', 'percent', 'percent bar', 'A progress bar' ],
-                wrapType: [ 'toast',  'terminal', 'log', 
-                'widget',
-                ],
+                valType: [ 'raw', 'toString', 'secLeft', 'percent', 'percent bar', 'A progress bar',
+                    // submit
+                    'input text submit TODO',
+                    'input list select submit TODO', 
+                    'input combobox select submit TODO', 
+                    
+                    ],
+                wrapType: [ 'toast',  'terminal', 'log', 'widget', 
+                    'clipBoard TODO' ],
                 liveSes: [ true, false ],
 
             },
@@ -739,7 +763,7 @@ data(){
         recipeNow:{
             autoStatr: false,   // TODO
             //hidden: false,      // TODO no .rName - cia 
-            setENV: false,      // TODO so result set ENV of session / client see 
+            setENV: [],      // TODO so result set ENV of session / client see 
 
             mediumProtocal:'cmd', 
             topicAddress:"echo $(( `date +%s` - 1769016074 ))", 
@@ -765,7 +789,6 @@ methods:{
 
 
     
-
 
 
     // screen render ---- START
@@ -894,7 +917,7 @@ methods:{
             } );
 
             // scroll to #Baking_recipe
-            document.getElementById('baking_recipe').scrollIntoView({ behavior: 'smooth' })
+            //document.getElementById('baking_recipe').scrollIntoView({ behavior: 'smooth' })
 
         }else if( data.action == 'sub' ){
                                    
@@ -1420,76 +1443,134 @@ methods:{
     },
 
     dataWrapType( title, data, valType ){
-        if( valType == 'secLeft' ){
-                return msToDurationString( data )+' sec.';
+        console.log('[oven data wrap]('+valType+') ... data typeof ('+(typeof data)+') isArray: ['+Array.isArray( data )+'] \n\ndata:\n',data);
+    
+        let trWrap = [];
+        
+    
+        if( Array.isArray( data ) ){
+            data.forEach( (l,li) => { 
+        
+                      
+    
+                if( valType == 'secLeft' ){
+                
+                    let secRes = msToDurationString( l );
+                        trWrap.push( secRes == 'NaNms' ? l : secRes+' sec.' );
+                
+                
+                
+                }else if( valType == 'percent' ){
+                
+                    let w = parseFloat(l);
+                    if( typeof w == 'object' ){
+                        trWrap.push( l );
+                    } else {
+                        let divName = 'ooccPerc_'+li+'_'+Date.now();
+                        setTimeout(()=>{ 
+                            new JustGage({
+                                id: divName,
+                                value: l,
+                                min: 0,
+                                max: 100,
+                                title: title,
+                                donut: true
+                                });
 
-        }else if( valType == 'percent' ){
-                let divName = 'ooccPerc'+Date.now();
-                setTimeout(()=>{ 
-                    new JustGage({
-                        id: divName,
-                        value: data,
-                        min: 0,
-                        max: 100,
-                        title: title,
-                        donut: true
-                        });
-
-                },200);
-                return `<div id="${divName}"></div>`;
-                    //afterShown: function () {
-                       
-                       
-        }else if( valType == 'toString' ){
-            console.log('[oven toString] ....',{title, data, valType});
-            
-            return '<pre>'+data.join('\n')+'</pre>';
+                        },200);
+                        trWrap.push( `<div id="${divName}"></div>` );                    
+                    }
+                           
+                           
+                }else if( valType == 'toString' ){
+                
+                    console.log('[oven toString] ....',{title, data, valType});            
+                    trWrap.push( '<pre>'+l+'</pre>' );
+                    
+                            
+                }else if( valType == 'A progress bar' ){
+                
+                    let w = parseFloat(l);
+                    if( typeof w == 'object' || `${w}` == 'NaN'   ){
+                        trWrap.push( l );
+                    } else {                    
+                        let size = 20.00 - 6;
+                        let cDone = (size/100.0)*w;
+                        let percLen = `${parseInt(w)} `.length;
+                        if( cDone > 100.00 || cDone < 0.00 || size <= 0 ) return 'EE apbar '+data;
                         
-        }else if( valType == 'A progress bar' ){
-            let w = parseFloat(data);
-            let size = 20.00 - 6;
-            let cDone = (size/100.0)*w;
-            let percLen = `${parseInt(w)} `.length;
-            if( cDone > 100.00 || cDone < 0.00 || size <= 0 ) return 'EE apbar '+data;
+                        console.log(`[oven apbar debug] w type(${typeof w}) then ... `,{data, w, percLen, size, cDone,'notDone':( size - cDone)});
+                        let strDone = '⠶'.repeat( parseInt( cDone ) );
+                        let strNot = "⠄".repeat( parseInt( size - cDone )  ); 
+                        let tr = `[ ${strDone}${strNot} ]${' '.repeat(4-percLen)}${parseInt(w)}%`;
+                        console.log('[oven A progress bar] '+tr);
+                        trWrap.push( tr );                   
+                   }
+
+
+                }else if( valType == 'percent bar' ){
+
+                    let divName = 'ooccPerc'+Date.now();
+                    let w = parseInt(l);
+                    if( typeof w == 'object' ){
+                        trWrap.push( l );
+                    } else {            
+                        let size = [150,20];
+                        trWrap.push( `
+                        
+                        <b style="">
+                            ${w} %
+                        </b>  
+                        <div id="${divName}" style="
+                            border: 2px solid black;
+                            width:${size[0]+10}px;
+                            height:${size[1]}px;
+                        
+                        ">
+                            <div style="border-left:2px solid black;height:${size[1]}px;width:${w}px;background-color: red;display:inline-block;" ></div>
+                            <div style="border-left:2px solid black;height:${size[1]}px;width:${size[0]-w}px;background-color: green;display:inline-block;" ></div>
+
+                        </div>` );
+                    }
+                        
+                    
+                }else if( valType == 'raw' ){
+                    trWrap.push( l );
+                    
+                }else{
+                    console.error('EE2 dataWrapType Nan ',valType);
+                }
+        
             
-            console.log(`[oven apbar debug] `,{data, w, percLen, size, cDone,'notDone':( size - cDone)});
-            let strDone = 'O'.repeat( parseInt( cDone ) );
-            let strNot = ".".repeat( parseInt( size - cDone )  ); 
-            let tr = `[ ${strDone}${strNot} ]${' '.repeat(4-percLen)}${parseInt(w)}%`;
-            console.log('[oven A progress bar] '+tr);
-            return tr;
-
-        }else if( valType == 'percent bar' ){
-                let divName = 'ooccPerc'+Date.now();
-                
-                let w = parseInt(data);
-                let size = [150,20];
-                return `
-                
-                <b style="">
-                    ${w} %
-                </b>  
-                <div id="${divName}" style="
-                    border: 2px solid black;
-                    width:${size[0]+10}px;
-                    height:${size[1]}px;
-                
-                ">
-                    <div style="border-left:2px solid black;height:${size[1]}px;width:${w}px;background-color: red;display:inline-block;" ></div>
-                    <div style="border-left:2px solid black;height:${size[1]}px;width:${size[0]-w}px;background-color: green;display:inline-block;" ></div>
-
-                </div>`;
-                    //afterShown: function () {
-                
-        }else if( valType == 'raw' ){
+            });
+        
+        } else {
+            console.error('EE4 dataWrapType data is not array!');
             return data;
-
-        }else{
-                console.log('EE dataWrapType Nan ',valType);
-        }
+        
+        } 
+        
+        
+        
+        return trWrap.join('\n');
+        
+        
+        
     },
 
 
+
+
+    // to handle adding 
+    onEmit_tagsAdd_setENV( event ){
+        console.log('[oven] recipe setENV ... event: ',event,'\n\n recipeNow',this.recipeNow);
+        this.recipeNow.setENV.push( `${event}` );
+        this.recipeNow.setENV.sort();
+
+    },        
+    onEmit_tagRemove_setENV( index ){
+        this.recipeNow.setENV.splice( parseInt( index ), 1 );
+    },
 
 
 
@@ -1564,7 +1645,7 @@ methods:{
         
         let defRecipe = {
             "autoStatr": false,
-            "setENV": false,
+            "setENV": [],
             "mediumProtocal": cmd,
             "topicAddress": "env | grep \"^oven\"",
             "rName": taskName,
@@ -1682,16 +1763,22 @@ methods:{
             }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
 
 
+
+
+                //let msgToSend = undefined;
+                
                 // as all result at once 
-                if( valType == 'toString' ){ 
+                /*if( valType == 'toString' ){ 
                     if( resToProcess ){
                             try{
+                            */
                                 let msgToSend = this.dataWrapType( '', resToProcess, valType );
                                 console.log('[oven 6789 - '+valType+'] resToProcessALL ->',r,"\n\t msg to send\n", msgToSend);
-                                this.msgWrapInType( 
+                                this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
                                     wrapType, targetData 
                                 );
+                                /*
                             } catch(e){
                                 console.log('EE res line to integer no good error\n',e);
                             }
@@ -1703,9 +1790,9 @@ methods:{
                     resToProcess.forEach( r => {
                         if( r ){
                             try{
-                                let msgToSend = this.dataWrapType( '', r, valType );
+                                msgToSend = this.dataWrapType( '', r, valType );
                                 console.log('[oven 6789 - '+valType+'] resToProcessLineByLine ->',r,"\n\t msg to send\n", msgToSend);
-                                this.msgWrapInType( 
+                                this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
                                     wrapType, targetData 
                                 );
@@ -1719,7 +1806,7 @@ methods:{
                     
                 }
 
-            
+            */
 
 
 
@@ -1737,7 +1824,7 @@ methods:{
 
 
 
-            }else {
+            } else {
                 console.log('EE 5678987 valType not supported [',valType,'] is array of ('+resToProcess.length+') \n resToProcess: ',resToProcess);
             }
         };

@@ -1,12 +1,14 @@
 # viteyss-site-oven
 
-![](./assets/ico_mafinOven_64_64.png) Oven is a define recipe / set ingreadiance / post-process / wrap it ... Bakeing place 
+![](./assets/ico_mafinOven_64_64.png) Oven is a define recipe / 
+set ingreadiance / post-process / wrap it ... Bakeing place 
 
 gui for bash with some rerouting.
 
 ## what it solves for me
 
-N number of lost / forgotten / misplaced scripts and tasks can be in one place. Rapid / ascii / directory / link base system for configuration.
+N number of lost / forgotten / misplaced scripts and tasks can be in one place. 
+Rapid / ascii / directory / link base system for configuration.
 
 So Cook Book holds sets of recipes. For something what I want / need to do. 
 
@@ -26,7 +28,7 @@ Recipe can be Baked in oven as one shot or long time live process.
 
 stdio is main source of data sourcing for next step
 
-**line** or block of result of text can be postProcess as 
+`chunks` or `blocks` of result of text can be postProcess as 
 
 ```info
 [A] - [ ] asci posible to worki in terminal and web
@@ -47,6 +49,10 @@ stdio is main source of data sourcing for next step
 
 * ...
 
+Wrapping if get array will run line by line with define process. But if it's numerical operation then on error conversion return line as is.
+
+
+
 Then it's passing it to wrapping section ...
 
 ### wrapping it
@@ -60,27 +66,34 @@ It's possible to set recipe that it can wrap product in a:
 * [W] `log`
 
 * [ ] widget / channel of recipe it self ( almost ) 
-- [ ] to `ENV` as variable
+- [x] to `setENV` as data handle - as `TagsColector`
 
-- [ ] to trigger other channel
+- [ ] to `getENV` as input from data handles on change
+
+- [ ] to trigger other channel - setting name of setENV to CookBook adressUrl / chN ?
 
 #### screenshoot
 
 ####### ver 26012x ... state chaos working
 
-![](./examples/screen_topSection_26012x.png) Top part with some custom debug action buttons end debug links as it's work in progress.
+![](./examples/screen_topSection_26012x.png) Top part with some custom debug 
+action buttons end debug links as it's work in progress.
 
 ![](./examples/screen_CookBookRoot_26012x.png)
 
 ![](./examples/screen_cmdTestPlaceLogs_26012x.png)
 ![](./examples/screen_logingItSelf_26012x.png)
-![](./examples/screen_logOfInerativeRecipe_26012x.png) Log of iterative recipe Ram use / total Gi from `free`
+![](./examples/screen_logOfInerativeRecipe_26012x.png) Log of iterative 
+recipe Ram use / total Gi from `free`
 
 ![](./examples/screen_settingRecipe_26012x.png)
 
 #### CookBook 's
 
-Since there is working CookBook 's swapping option. In allows now to have unlimited depth and sets of recipes. All the power coming with file system of linux: directories, files, links, fifo, ... is access able as element of configuration of next CookBook.
+Since there is working CookBook 's swapping option. In allows now to have 
+unlimited depth and sets of recipes. All the power coming with file 
+system of linux: directories, files, links, fifo, ... is access able as element 
+of configuration of next CookBook.
 
 - [x] swapping CookBook 's
 
@@ -108,7 +121,7 @@ oWin - window oven manager
 
 - [ ] tui - blessed
 
-- [x] Oven Modes: [ view , cmd , edit , debug ]
+- [x] Oven Modes: [ `view` , `cmd` , `edit` , `debug` ]
 
 #### xdoc
 
