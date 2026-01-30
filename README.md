@@ -51,8 +51,6 @@ stdio is main source of data sourcing for next step
 
 Wrapping if get array will run line by line with define process. But if it's numerical operation then on error conversion return line as is.
 
-
-
 Then it's passing it to wrapping section ...
 
 ### wrapping it
@@ -140,6 +138,19 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 - [x] `onModeSwith(targetModeName, onDone )` - to prompt and to add to history
 
 #### notes
+
+
+
+* 260130
+- [x] [W] ovENVView at vue site to see ENV `basket` ?
+  
+  - [ ] TODO not updating it self 
+
+- [x] iconsVanilla [ mafinOven autoStart tacos command ] in [ 22 32 ] added
+  
+  
+  
+  
 
 - [ ] ovenApp provide `oven`
 
