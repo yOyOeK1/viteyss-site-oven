@@ -9,8 +9,9 @@
     "testVanila": "cd /home/yoyo/Apps/viteyss; node ./runItSelector.js  --yssSites=0 --homeSites=0 --viteyssSites=0",
     
     "bakeIcons64": "icons='mafinOven';iSize='64'; cd /home/yoyo/Apps/icons; for i in $icons;do echo 'make icon: '$i; ./make_icon_resize.sh 'ico_'$i'_256_256.png'; cp 'ico_'$i'_'$iSize'_'$iSize'.png' $npm_config_local_prefix'/assets/'; done;echo 'ok size: '$iSize; echo 'DONE';",
-    "bakeIcons32": "icons='mafinOven';iSize='32'; cd /home/yoyo/Apps/icons; for i in $icons;do echo 'make icon: '$i; ./make_icon_resize.sh 'ico_'$i'_256_256.png'; cp 'ico_'$i'_'$iSize'_'$iSize'.png' $npm_config_local_prefix'/assets/'; done;echo 'ok size: '$iSize; echo 'DONE';",
-    
+    "bakeIcons32": "icons='mafinOven autoStart tacos command';iSize='32'; cd /home/yoyo/Apps/icons; for i in $icons;do echo 'make icon: '$i; ./make_icon_resize.sh 'ico_'$i'_256_256.png'; cp 'ico_'$i'_'$iSize'_'$iSize'.png' $npm_config_local_prefix'/assets/'; done;echo 'ok size: '$iSize; echo 'DONE';",
+    "bakeIcons22": "icons='mafinOven autoStart tacos command';iSize='22'; cd /home/yoyo/Apps/icons; for i in $icons;do echo 'make icon: '$i; ./make_icon_resize.sh 'ico_'$i'_256_256.png'; cp 'ico_'$i'_'$iSize'_'$iSize'.png' $npm_config_local_prefix'/assets/'; done;echo 'ok size: '$iSize; echo 'DONE';",
+  
     "cpOvenDef": "cp -rvf ./ovenDef/* $HOME'/.viteyss/oven/' && echo '# cp oven defaults to home --- DONE'",
 
 

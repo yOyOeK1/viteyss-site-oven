@@ -236,6 +236,19 @@ pennding now:</pre>
 
 
 
+
+<div v-if="[ 'view', 'debug' ].indexOf( oven.ovenMode ) != -1">
+
+    ENV start
+
+    <OvENVView />
+
+</div>
+
+
+
+
+
 <div style="position:relative;">
 <OvGroup
     :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'"
@@ -685,6 +698,7 @@ import { ref } from 'vue';
 import { msToDurationString } from '/libs/libsForTime.js';
 import ovGroup from './ovGroup.vue';
 import OvDir from './ovDir.vue';
+import OvENVView from './ovENVView.vue';
 import TagsColector from '@UiAssets/tagsColector.vue';
 import { getDefRecipe, ODdataWrapType } from '../libs/ovenDefinitions';
 
@@ -695,7 +709,8 @@ props: [ 'homeUrl' ],
 components:{
     'OvGroup': ovGroup,
     'OvDir': OvDir,
-    "TagsColector": TagsColector,
+    'OvENVView': OvENVView,
+    'TagsColector': TagsColector,
 },
 
 mounted(){
@@ -717,7 +732,7 @@ provide(){
 },
 data(){   
 
-    let ovenMode = 'edit';
+    let ovenMode = 'view';
 
 
     return {
