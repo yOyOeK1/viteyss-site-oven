@@ -241,7 +241,10 @@ pennding now:</pre>
 
     ENV start
 
-    <OvENVView />
+    <OvENVView 
+        ref="ENVHub"
+        @dir-channel-click="onEmit_dirChannelClick"
+        />
 
 </div>
 
@@ -728,6 +731,7 @@ unmounted(){
 provide(){
     return {
         'oven': this.oven,
+        'ENVs': this.ENVs,
     };
 },
 data(){   
@@ -743,6 +747,7 @@ data(){
 
         modeHistory: [ ovenMode ],
 
+        ENVs: {},
 
         oven:{
             working: true,
@@ -918,6 +923,9 @@ methods:{
 
     getChannelFromNo( adressUrl = '', chNo ){
         return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
+    },
+    getChanneltargetData( targetData ){
+        return this.oven.dir[ targetData.adressUrl ]['layout']['channels'][ targetData.chNo ];
     },
 
 
@@ -1397,14 +1405,19 @@ methods:{
 
     // ---- env bash export  ----  START
     getCmdEnvHeader( chNo = -1, rName = 'debug_test' ){
-        return [
+        let tr = [
             `# set oven ENV`,
             `export oven_home='/.viteyss/oven'`,
             `export oven_adressUrl='${this.oven.adressUrl}'`,
             `export oven_my_chNo='${chNo}'`,
             `export oven_my_rName='${rName}'`,
-            `# set oven ENV --- END`,
-        ].join('\n')+';\n';
+        ];        
+        for( let envN of Object.keys( this.ENVs ) )
+            tr.push( `export oven_${envN}='${ this.ENVs[ envN ] }'` );
+        
+        tr.push( `# set oven ENV --- END` );
+
+        return tr.join('\n')+';\n';
     },
     
     // ---- env bash export  ----  END
@@ -1463,6 +1476,10 @@ methods:{
             chObj['statusNow'] = 'running';
             //chObj['result'] = msg;
             chObj['widget'] = msg;
+
+            this.$refs.ENVHub.reroutENV( `${msg}`, 
+                this.getChanneltargetData( targetData )
+            );
             
         }
 
@@ -1795,7 +1812,7 @@ methods:{
                             try{
                             */
                                 let msgToSend = ODdataWrapType( '', resToProcess, valType );
-                                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',r,"\n\t msg to send\n", msgToSend);
+                                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t msg to send\n", msgToSend);
                                 this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
                                     wrapType, targetData 
@@ -1988,7 +2005,7 @@ methods:{
             this.onDoFetch(
                 targetData, 
                 'onOvenCompact_full - ReadyOnly', 
-                '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
+                '/apis/oven/cmd0/b64:'+btoa( encodeURIComponent( cmd ) ),{
                 'onReady':(r)=>{
                     let cmdRes = this.cunksResult_resultObject( r );
                     let resToPass = cmdRes.res;

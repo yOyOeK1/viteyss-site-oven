@@ -139,18 +139,32 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 #### notes
 
+- [x] make it `invoike listener of ENV`
+  - [x] api_oven now CMD b64 is wrapt first in `encodeURIComponent` then `btoa`
+  - [ ] OvENVView can not do reroute of 
+    - [ ]     - [x] builds connection tree
+    - [x] calls channel on `reroutENV( data, recipe )`
+    - [ ] need more work with passing on all wrappers no work ok widget
+
+#### 260130.2
+
+make it `invoike listener of ENV`
+
+- [x] api_oven now CMD b64 is wrapt first in `encodeURIComponent` then `btoa`
+- [ ] OvENVView can not do reroute of
+  - [ ] 
+  - [x] builds connection tree
+  - [x] calls channel on `reroutENV( data, recipe )`
 
 
-* 260130
+
+#### 260130
+
 - [x] [W] ovENVView at vue site to see ENV `basket` ?
   
   - [ ] TODO not updating it self 
 
 - [x] iconsVanilla [ mafinOven autoStart tacos command ] in [ 22 32 ] added
-  
-  
-  
-  
 
 - [ ] ovenApp provide `oven`
 

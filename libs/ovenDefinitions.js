@@ -28,6 +28,16 @@ let getDefRecipe = (
 }};
 
 
+let getDefENV = ( eName ) => {
+    return { 
+        eName,
+        results:[],
+        RXs: [],
+        TXs: [],
+    }; 
+};
+
+
 
 let ODdataWrapType = ( title, data, valType ) => {
         console.log('[ODoven data wrap]('+valType+') ... data typeof ('+(typeof data)+') isArray: ['+Array.isArray( data )+'] \n\ndata:\n',data);
@@ -169,4 +179,4 @@ let ODdataWrapType = ( title, data, valType ) => {
 
 
 
-export { getDefRecipe, ODdataWrapType }
+export { getDefRecipe, getDefENV, ODdataWrapType }

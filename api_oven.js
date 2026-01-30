@@ -332,7 +332,7 @@ class serveroven{
 
             if( cmdToDo.startsWith('b64:') ){
                 console.log(`[sp] command as base64 ...`);
-                cmdToDo = atob( cmdToDo.substring(4) );
+                cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
             }
 
             this.startBeaking( req, res,  cmdToDo);
