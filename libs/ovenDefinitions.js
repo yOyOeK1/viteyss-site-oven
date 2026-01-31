@@ -1,4 +1,6 @@
 
+import { msToDurationString } from '/libs/libsForTime.js';
+
 
 let getDefRecipe = (
 
@@ -52,8 +54,13 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
     
                 if( valType == 'secLeft' ){
                 
-                    let secRes = msToDurationString( l );
-                        trWrap.push( secRes == 'NaNms' ? l : secRes+' sec.' );
+                    let w = msToDurationString( l );
+                    if( typeof w == 'object' ){
+                        trWrap.push( l );
+                    } else {
+                        trWrap.push( w == 'NaNms' ? l : w+' sec.' );
+                    
+                    }
                 
                 
                 

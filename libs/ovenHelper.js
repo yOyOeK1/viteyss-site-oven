@@ -109,4 +109,15 @@ function cl2( res, str ){
     }
 }
 
-export {  cl2, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj }
+function linesToAppendArray( res, lines, arrayTo ){
+        for( let line of `${lines}`.split('\n') ){
+            arrayTo.push( line );
+            cl2(res,   '   '+line );
+        }
+        
+        return arrayTo;
+    }
+
+export {  cl2, linesToAppendArray, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj }
+
+

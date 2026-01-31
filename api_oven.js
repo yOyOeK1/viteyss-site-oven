@@ -3,7 +3,11 @@ import {dirname} from 'node:path'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url';  
-import { cl2, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj } from './libs/ovenHelper.js';
+import { writeHeadChunke }  from './libs/ovenHttp.js';
+import { cl2, linesToAppendArray, 
+    chkCasheDir, ovenDirEmpty, 
+    ovenLayoutToObjectFromJson, ovenDirToObj 
+    } from './libs/ovenHelper.js';
 import { stderr } from 'node:process';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,15 +46,6 @@ class serveroven{
         
     }
 
-    readHomeCookBook=()=>{
-        this.ovenCurrent = ovenDirToObj( this.homePath, __dirname, '' );
-        this.adressUrl = '';
-        this.dir = {};
-        //this.dir[ this.adressUrl ] = 
-        this.updateDirWith( '', this.ovenCurrent );       
-
-    }
-
     handleRequest( args ){
         let {req, res, server } = args;
 
@@ -62,22 +57,23 @@ class serveroven{
 
     }
 
+    readHomeCookBook=()=>{
+        this.ovenCurrent = ovenDirToObj( this.homePath, __dirname, '' );
+        this.adressUrl = '';
+        this.dir = {};
+        //this.dir[ this.adressUrl ] = 
+        this.updateDirWith( '', this.ovenCurrent );       
+
+    }
+
+
     cl( str ){
         console.log(` apioven     ${this.method}  ${this.url}     `,str);
     }
 
 
 
-    
-
-    linesToAppendArray( res, lines, arrayTo ){
-        for( let line of `${lines}`.split('\n') ){
-            arrayTo.push( line );
-            cl2(res,   '   '+line );
-        }
-        
-        return arrayTo;
-    }
+       
 
 
     startBeaking=( req, res, cmdToDo, recipeStart = undefined )=>{        
@@ -85,7 +81,7 @@ class serveroven{
         let runNo = `${this.runNo}`;
         res['runNo'] = runNo;
         let clientOnline = 1;        
-        this.writeHeadChunke( res );
+        writeHeadChunke( res );
         
 
         let waitForEndInter = -1;
@@ -139,13 +135,13 @@ class serveroven{
 
         sp.stdout.on( 'data', d =>{
             cl2(res,           '[sp][data] ... ');
-            spObj.stdout = this.linesToAppendArray( res, d, spObj.stdout );
+            spObj.stdout = linesToAppendArray( res, d, spObj.stdout );
            
         });
 
         sp.stderr.on( 'data', d =>{
             cl2(res, '[sp][err] ... ');
-            spObj.stderr = this.linesToAppendArray( res, d, spObj.stderr );
+            spObj.stderr = linesToAppendArray( res, d, spObj.stderr );
         });
 
         sp.on('close', exitCode => {
@@ -213,16 +209,6 @@ class serveroven{
     
 
 
-    writeHeadChunke(res){
-        res.writeHead(200,{
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Transfer-Encoding': 'chunked',
-            'Cache-Control': 'no-cache',
-            'Content-Length':'1042141',
-            'Connection': 'keep-alive',
-        });
-
-    }
 
 
     async doIt( req, res ){
@@ -234,6 +220,10 @@ class serveroven{
         // / key / x / y / z
         if( sapi.length ==  4 ){
             res.end('4');
+            return 0;
+        
+        
+        
         
         // intux  / /apis/oven/intux
         }else if( sapi.length >=  1 && sapi[0] == 'intux' ){
@@ -266,20 +256,30 @@ class serveroven{
 
             return 0;
 
-        // http://localhost:8080/apis/oven/dir/abc
+
+
+
+
+
+
+
+
+        // http://localhost:8080/apis/oven/dir/xxxx
         // to get list of current home dir CookBooks ~/.viteyss/oven
         }else if( sapi.length >=  1 && sapi[0].startsWith('dir') && sapi[0] != 'dirUpdate'  ){
-            this.writeHeadChunke( res );
-            res.write( JSON.stringify(
-                this.dir
-            ) );
-            res.end('\n');
+            writeHeadChunke( res );
+            res.end( JSON.stringify( this.dir )+'\n');
             return 0;
+
+
+
+
+
 
         // http://localhost:8080/apis/oven/dirUpdate
         // to update current home dir CookBooks ~/.viteyss/oven from fs
         }else if( sapi.length >=  1 && sapi[0] == 'dirUpdate'  ){
-            this.writeHeadChunke( res );
+            writeHeadChunke( res );
             let tStart = Date.now();
             let si = 0;
             let nAdressUrl = sapi.filter( se => si++ != 0 ).join('/');
@@ -293,21 +293,16 @@ class serveroven{
             
             //this.readHomeCookBook();
             //this.dir['tRebuildHomeCookBook'] = Date.now() - tStart;
-            res.write( JSON.stringify(
-                this.dir
-            ) );
-            res.end('\n');
+            //res.write( JSON.stringify( this.dir ) );
+            res.end( JSON.stringify( this.dir )+'\n');
             console.log('[oven] -> dirUpdate - CookBook in '+( (Date.now() - tStart)/1000 )+' sec.');
             return 0;
 
 
         // http://localhost:8080/apis/oven/QTaskList
         }else if( sapi.length ==  1 && sapi[0] == 'QTaskList' ){
-            this.writeHeadChunke( res );
-            res.write( JSON.stringify(
-                this.spList
-            ) );
-            res.end('\n');
+            writeHeadChunke( res );
+            res.end( JSON.stringify( this.spList )+'\n' );
             return 0;
 
         
@@ -316,7 +311,7 @@ class serveroven{
         // to get spList [ no ].log        
         }else if( sapi.length ==  1 && sapi[0].startsWith( 'splog' ) ){
             let spNo = parseInt( sapi[ 0 ].substring(5) );
-            this.writeHeadChunke( res );
+            writeHeadChunke( res );
             res.write( JSON.stringify({
                 stdout: this.spList[ spNo ].stdout,
                 stderr: this.spList[ spNo ].stderr
@@ -334,6 +329,11 @@ class serveroven{
                 console.log(`[sp] command as base64 ...`);
                 cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
             }
+
+
+            //console.log('stop for now');
+            //process.exit( 3 );
+
 
             this.startBeaking( req, res,  cmdToDo);
             return 0;
@@ -360,185 +360,6 @@ class serveroven{
     
     
     /// old 
-        startBeaking_old=( req, res, cmdToDo )=>{        
-        this.runNo++;
-        let runNo = `${this.runNo}`;
-        res['runNo'] = runNo;
-        let clientOnline = 1;        
-        this.writeHeadChunke( res );
-/*
-       
-
-        // echo -n '/home/yoyo/Apps/viteyss-site-oven/oven/inPlace2_260117tt165934.oven' | base64
-        // L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
-        // http://localhost:8080/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
-
-        
-        
-        //debugger
-        let cmd = ['echo -n "# "`date`"\n";',
-            `echo "# [i] Hello from api_oven terminal agent ..";`,
-            'echo "# pwd:   [`pwd`]";',
-            `echo "# Will performe automatic sequence to make from .oven to  _Ready in place.";`,
-            `echo "# ... start in 5 sec";`,
-            `sleep .15;`,
-            `echo "GOGOGO from sh layer ....";pwd;`,
-            `echo "# * will convert .oven to .sh ...";
-
-mkpLog=\`mktemp\`
-
-cd ${this.envMy.dirnameProcess}
-node ./runItSelector.js --site=oven --convertToSh=1 --files="${fPath}" >> "$mkpLog"
-exitC="$?"
-echo "# [d] Exit convert with code: [ ""$exitC"" ]"                
-if test "$exitC" = "11";then
-echo "# * echo convert OK in log file [ $mkpLog ]"
-shFilePath=\`cat "$mkpLog" | grep "target sh file " | awk '{print $6}' \`
-echo "# * sh file path  ...  [ $shFilePath ]"
-if test -e "$shFilePath";then
-    echo "# * make it executable ..."
-    chmod +x "$shFilePath"
-    cd \`dirname "$shFilePath"\`
-    pwd
-    echo "run in ... 5""exec \`basename "$shFilePath"\`"
-    sleep 5
-    exec \`basename "$shFilePath"\`
-
-else
-    echo "#EE * no sh file in target place "
-fi
-
-else
-echo "#EE * convert error exit 9"
-
-fi                
-            `,
-            `echo "# Done _______________"\`date\`;exec bash`].join('\n');
-            
-            //date;sleep 5;df -h;date;sleep 5;df -h;date;sleep 5;df -h;echo 'done';`;
-            //cmd = `gnome-terminal -- bash -c "${cmd}"`;
-            cmd = 'echo "ok ready";sleep 1; echo "doing it ...."; sleep 1; echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date;echo "doing it ...."; sleep 1;date; echo "doing it ...."; sleep 1; echo "cmd in bash DONE"; '
-            */
-        //cmd = `gnome-terminal --wait -- bash -c '${cmd}'`;
-        let cmd = `cmdToDo='${cmdToDo}';echo "# will make cmdToDo"; echo "# [ $cmdToDo ] "; echo "# ... in 5 sec\n. . .\n";sleep .5;echo "# GOGOGO ..."; $cmdToDo && exitCodeCmd="$?"&& echo "1 Main cmd bash exitWith: [ $exitCodeCmd ]" || exitCodeCmd="$?"&& echo "2Main cmd bash exitWith: [ $exitCodeCmd ]";`;
-        let waitForEndInter = -1;
-        let waitForEnd = true;
-        let cDir = chkCasheDir( res, this.casheFolder );
-        let semaforPath = `${this.casheFolder}/${Date.now()}_status_`;
-        //let spStatus = '';
-        //let cDir = chkCasheDir( res, dirname );
-        let extOk = true;
-        
-        cl2(res, [
-            ` viteyss-site-oven / ${this.url} ... `,
-            '',
-            ' will exec?    [ '+extOk+' ]',
-            ' cmd to run: ',
-            '               [ '+cmdToDo+' ]',
-            ' runNo:        [ '+runNo+' ]',
-            ' semafor path: [ '+semaforPath+ ' ]',
-            ' entry date:   [ '+Date.now()+' ]',
-            '',
-            '',
-            ' Plan is to run it in place if all good',
-            ' ... will start in 5 sec.'
-            ].join('\n# ')
-        );
-        
-        if( extOk == false ){
-            cl2(res,'No start extension not ok !! EXIT;');
-
-            return 0;
-
-        }
-
-        let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
-        let spObj = {
-            ident: semaforPath,
-            'sp': sp,
-            'runNo': runNo,
-            'status' : 'running ...',
-            'tEnd': undefined,
-            'tStart': Date.now(),
-            'exitCode': undefined,
-            'log': [],
-        };
-        this.spList.push( spObj );
-        //spStatus = 'running ...';
-        
-
-        sp.stdout.on( 'data', d =>{
-            cl2(res,           '[sp][data] ... ');
-            for( let line of `${d}`.split('\n') ){
-                if( line != '' ){
-                    //cl2(res,   '           \x1b[2m'+line+'\x1b[0m' );
-                    cl2(res,   '   '+line );
-                    //logCmd.push( line );
-                    spObj.log.push( line );
-                }
-            }
-
-        });
-
-        sp.stderr.on( 'data', d =>{
-            cl2(res, '[sp][err]: '+d);
-        });
-
-        sp.on('close', exitCode => {
-            cl2(res, ['[sp][close] ',exitCode]);
-            clearInterval( waitForEndInter );
-            
-            spObj.status='done';
-            spObj.exitCode = exitCode;
-            spObj.tEnd = Date.now();
-            //waitForEnd = false
-            //cl2(res, '# [sp][close] BakeInPlace');
-            res.end('# ----- DONE');
-            waitForEndInter = -1;
-
-
-
-
-        });            
-        sp.stdin.end();
-        
-        waitForEndInter = setInterval(()=>{
-            if( waitForEnd == false || spObj.status == 'done' ){
-                cl2(res, '# [@@] BakeInPlace ... At WATCHDOG');
-                clearInterval( waitForEndInter );
-                
-                cl2(res, '# [@@] BakeInPlace ... cleaning sub process list ');
-                spObj.tEnd = Date.now();
-
-                res.end('# ----- DONE');
-                waitForEndInter = -1;
-
-                
-
-            }else{
-                cl2(res, '# [@@] ping client[ '+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')');
-            }
-
-        },15000);
-
-        
-        req.on('close',e=>{
-            this.cl('\n\n['+runNo+'][##] http client left close');
-            clientOnline = 0;
-
-        });
-        req.on('error',e=>{
-            this.cl('\n\n['+runNo+'][##] http client left error');
-        });
-
-
-    }
-
-
-    // --- end old 
-    
-    
-    
     
     
     
