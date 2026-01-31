@@ -1425,7 +1425,7 @@ methods:{
     getCmdEnvHeader( chNo = -1, rName = 'debug_test' ){
         let tr = [
             `# set oven ENV`,
-            `export oven_home='/.viteyss/oven'`,
+            `export oven_home=$HOME'/.viteyss/oven'`,
             `export oven_adressUrl='${this.oven.adressUrl}'`,
             `export oven_my_chNo='${chNo}'`,
             `export oven_my_rName='${rName}'`,

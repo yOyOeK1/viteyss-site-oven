@@ -2,7 +2,7 @@
     "autoStatr": false,
     "setENV": false,
     "mediumProtocal": "cmd",
-    "topicAddress": "grep --help | fzf ",
+    "topicAddress": "echo `grep --help | fzf` && sleep 10 && exec bash",
     "rName": "grep to fzf",
     "valType": "raw",
     "wrapType": "terminal",
