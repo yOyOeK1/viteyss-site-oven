@@ -38,15 +38,23 @@ stdio is main source of data sourcing for next step
 * [A] `raw` - array line by line of result or chunks
 
 * [x] [A] `toString` - to string join with `\n`
-
+- [x] [A] `toBraile` - to get braile chars
 * [A] `secLeft` - sec left / since 
 
 * [W] `percent` - `jQuery` donuts like visualization
 
 * [W] `percent bar` - `html` progress bar 
 
-* [x] [A] `progress bar ascii` - `ascii` progress bar 
-
+* [x] [A] `progress bar ascii` - `ascii` progress bar
+- [x] [A] `input list select submit` - takes lines from `getENV` and gives click on one of them by `recipe`
+  
+  - [ ] need setting ?
+    
+    - [ ] how many buttons add to line
+    
+    - [ ] how wide percent bar ?
+    
+    - [ ] ...
 * ...
 
 Wrapping if get array will run line by line with define process. But if it's numerical operation then on error conversion return line as is.
@@ -64,11 +72,9 @@ It's possible to set recipe that it can wrap product in a:
 * [W] `log`
 
 * [ ] widget / channel of recipe it self ( almost ) 
-- [x] to `setENV` as data handle - as `TagsColector`
+- [x] to `setENV` - so it can be use / access by other channels
 
-- [ ] to `getENV` as input from data handles on change
-
-- [ ] to trigger other channel - setting name of setENV to CookBook adressUrl / chN ?
+- [x] to `getENV` - as input from data change from other channel
 
 #### screenshoot
 
@@ -142,9 +148,22 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 - [x] make it `invoike listener of ENV`
   - [x] api_oven now CMD b64 is wrapt first in `encodeURIComponent` then `btoa`
   - [ ] OvENVView can not do reroute of 
-    - [ ]     - [x] builds connection tree
+    - [ ] - [x] builds connection tree
     - [x] calls channel on `reroutENV( data, recipe )`
-    - [ ] need more work with passing on all wrappers no work ok widget
+    - [ ] need more work with passing on all wrappers no work ok 
+      - [x] to widget
+      - [ ] to toast - now lands in two spots
+      - [ ] to log
+      - [ ] to terminal
+
+
+
+#### 260130.3
+
+- [x] `ovenApp` inject `ovenSelectod` to recive from out events
+- [x] `ODdataWrapType` now get recipe as arg
+
+
 
 #### 260130.2
 
@@ -155,8 +174,6 @@ make it `invoike listener of ENV`
   - [ ] 
   - [x] builds connection tree
   - [x] calls channel on `reroutENV( data, recipe )`
-
-
 
 #### 260130
 
@@ -213,7 +230,9 @@ make it `invoike listener of ENV`
   
   - [ ] pimp this step !!!
 
-- [ ] 
+- [ ] TOFIX
+  
+  - [ ] `basenameAdressUrl` in `ovenLayoutToObjectFromJson` from ahref from recipe click post process
 
 - [ ] handle `read -r` from bash
 

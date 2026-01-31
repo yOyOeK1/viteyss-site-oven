@@ -66,6 +66,8 @@ function ovenDirEmpty( thomePath, dirname ){
     for( let ci=0,chc=chs.length; ci<chc; ci++){
         if( dirListAll.findIndex( fi => fi == `0_ch${ci}.js`) != -1 ){
             chs[ ci ] = JSON.parse( fs.readFileSync( path.join( pathBase, `0_ch${ci}.js` ) ).toString() );
+            chs[ ci ]['chNo'] = ci;
+            chs[ ci ]['basenameAdressUrl'] = path.basename( pathBase );
             console.log( '#* channel'+ci+' ... OK ');
         }else{
             console.log( '#* channel'+ci+' not set ');

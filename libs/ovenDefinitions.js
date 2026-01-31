@@ -39,7 +39,7 @@ let getDefENV = ( eName ) => {
 
 
 
-let ODdataWrapType = ( title, data, valType ) => {
+let ODdataWrapType = ( title, data, valType, recipe ) => {
         console.log('[ODoven data wrap]('+valType+') ... data typeof ('+(typeof data)+') isArray: ['+Array.isArray( data )+'] \n\ndata:\n',data);
     
         let trWrap = [];
@@ -98,6 +98,16 @@ let ODdataWrapType = ( title, data, valType ) => {
                     console.log( bRes );
                     trWrap.push( '<pre>'+bRes+'</pre>' );
 
+                //input list select submit
+                }else if( valType == 'input list select submit' ){
+                    
+                    let fName = "inLisSelSub"
+
+
+                    console.log('[OD A input list] '+l,' \n recipe ',JSON.stringify(recipe,null,4));
+                    if( l != '' )
+                        trWrap.push( '[ <a onclick="ovenSelected( \''+recipe.basenameAdressUrl+'\', '+recipe.chNo+', \''+l+'\' );">o</a> ] '+l );                   
+                                   
                             
                 }else if( valType == 'A progress bar' ){
                 

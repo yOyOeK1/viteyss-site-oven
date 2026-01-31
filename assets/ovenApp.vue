@@ -721,6 +721,23 @@ mounted(){
         console.log('[oven] mounted ... setting adressUrl: ""');
         this.onQeryOvenDirUpdate('');
         this.oven.adressUrl = '';
+
+
+        console.log('* inject - ovenSelected ');
+        window['ovenSelected'] = (basenameAdressUrl, chNo, msg ) => {
+            let exKey = `exT${basenameAdressUrl}Ch${chNo}`;
+            console.log(`[ovenBD] got `,{exKey, basenameAdressUrl, chNo, msg});
+
+            // TO FIX 
+            let Cho = this.getChannelFromNo('/'+basenameAdressUrl, chNo);
+            Cho.setENV.push( exKey );
+            this.$refs.ENVHub.reroutENV( msg, Cho );
+
+        };
+
+
+
+
     },500);
     console.log('[oven] mounted. ...');
 },
@@ -772,7 +789,8 @@ data(){
                 `free | grep Mem | awk '{print ($3/$2)*100.00}'`, // to percent rame use
                 `acpi -b | awk '{print $4}' | replace '%,' ''`, // # batery local status
                 '../viteyss-site-oven/ovenDef/0_ch_sqlite3_select.sh "tab1" "/tmp/dbTab1.db"', // # sqlite3 slection
-                'ls -al ./ | awk \'{print $5"\\n - "$9}\''
+                'ls -al ./ | awk \'{print $5"\\n - "$9}\'',
+                'ls ./ | head -n 5'
             ],
             
             
@@ -786,10 +804,10 @@ data(){
                     ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A progress bar', 
+                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A progress bar',  
                     // submit
+                    'input list select submit', 
                     'input text submit TODO',
-                    'input list select submit TODO', 
                     'input combobox select submit TODO', 
                     
                     ],
@@ -1772,6 +1790,7 @@ methods:{
     makeHook( mediumProtocal, topicAddress, title, valType, wrapType, targetData = undefined ){
         
         let cmd = undefined;
+        let recipe = targetData != undefined ? this.getChanneltargetData( targetData ) : undefined;
         //let msg = undefined;
         
 
@@ -1811,7 +1830,7 @@ methods:{
                     if( resToProcess ){
                             try{
                             */
-                                let msgToSend = ODdataWrapType( '', resToProcess, valType );
+                                let msgToSend = ODdataWrapType( '', resToProcess, valType, recipe );
                                 console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t msg to send\n", msgToSend);
                                 this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
