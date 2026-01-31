@@ -34,11 +34,14 @@ class serveroven{
         this.spList = [];
         this.vClients = {};
 
+        // remove it --- start
         this.ovenCurrent = undefined;
         this.adressUrl = undefined;
         this.dir = undefined;
         this.readHomeCookBook();
-    
+        // remove it --- END
+        
+        this.ovenM = new oven( 'as1', this.homePath, __dirname );
         
         //this.mapleafletPath = '/home/iloo/Projects/ilooViteYss/sharelibs/viteyss-site-mapleaflet';
         //this.mapleafletPath = '/home/yoyo/Apps/viteyss-site-mapleaflet';
@@ -57,6 +60,7 @@ class serveroven{
 
     }
 
+    // remove it 
     readHomeCookBook=()=>{
         this.ovenCurrent = ovenDirToObj( this.homePath, __dirname, '' );
         this.adressUrl = '';
@@ -65,6 +69,14 @@ class serveroven{
         this.updateDirWith( '', this.ovenCurrent );       
 
     }
+    
+    // remove it
+    updateDirWith=( adressUrl, dirObj )=>{
+        this.dir[ adressUrl ] = dirObj;
+        console.log('[oven] dir now hawe [ '+Object.keys( this.dir ).join(', ')+' ]');
+    }
+    
+    
 
 
     cl( str ){
@@ -198,12 +210,7 @@ class serveroven{
     }
 
 
-
-    updateDirWith=( adressUrl, dirRunObj )=>{
-        this.dir[ adressUrl ] = dirRunObj;
-
-        console.log('[oven] dir now hawe [ '+Object.keys( this.dir ).join(', ')+' ]');
-    }
+    
 
 
     
