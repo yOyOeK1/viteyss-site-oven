@@ -36,11 +36,11 @@ class oven{
     }
     
     readHomeCookBook_init = () => {
-        ovenDirObj = ovenDirToObj( this.homePath, this.srcHomePath, '' );
+        let ovenDirObject = ovenDirToObj( this.homePath, this.srcHomePath, '' );
         this.adressUrl = '';
         this.dirs = {};
         //this.dir[ this.adressUrl ] = 
-        this.updateDirWith( '', ovenDirObj );    
+        this.updateDirWith( '', ovenDirObject );    
     
     }
     

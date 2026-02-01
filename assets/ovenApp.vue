@@ -1314,7 +1314,7 @@ methods:{
         // this.onDoFetch( undefined, '/apis/oven/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0' 
         this.onDoFetch( undefined, 'onQeryTasksNow', '/apis/oven/QTaskList',{
             'onReady':(r)=>{
-                let j = JSON.parse( r );
+                let j = JSON.parse( r.join('\n') );
                 console.log('[oven] QTaskList result .... ',
                     //JSON.stringify( j ,null,4)
                 );

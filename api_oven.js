@@ -9,6 +9,7 @@ import { cl2, linesToAppendArray,
     ovenLayoutToObjectFromJson, ovenDirToObj 
     } from './libs/ovenHelper.js';
 import { stderr } from 'node:process';
+import { oven } from './libs/ovenMain.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,10 +36,12 @@ class serveroven{
         this.vClients = {};
 
         // remove it --- start
+        /*
         this.ovenCurrent = undefined;
         this.adressUrl = undefined;
-        this.dir = undefined;
+        this.ovenM.dirs = undefined;
         this.readHomeCookBook();
+        */
         // remove it --- END
         
         this.ovenM = new oven( 'as1', this.homePath, __dirname );
@@ -60,22 +63,23 @@ class serveroven{
 
     }
 
+    /*
     // remove it 
     readHomeCookBook=()=>{
         this.ovenCurrent = ovenDirToObj( this.homePath, __dirname, '' );
         this.adressUrl = '';
-        this.dir = {};
-        //this.dir[ this.adressUrl ] = 
+        this.ovenM.dirs = {};
+        //this.ovenM.dirs[ this.adressUrl ] = 
         this.updateDirWith( '', this.ovenCurrent );       
 
     }
     
     // remove it
     updateDirWith=( adressUrl, dirObj )=>{
-        this.dir[ adressUrl ] = dirObj;
-        console.log('[oven] dir now hawe [ '+Object.keys( this.dir ).join(', ')+' ]');
+        this.ovenM.dirs[ adressUrl ] = dirObj;
+        console.log('[oven] dir now hawe [ '+Object.keys( this.ovenM.dirs ).join(', ')+' ]');
     }
-    
+    */
     
 
 
@@ -122,13 +126,16 @@ class serveroven{
         }
 
         let vClientsOnline = true;
-        let sp = spawn( 'echo "# GOGO ... #";'+cmdToDo, { shell: true } );
+        let sp = spawn( 
+            //'echo "# GOGO ... #";'+
+            cmdToDo, { shell: true } );
         //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
         let vClient = { id: runNo,'online': vClientsOnline, req, res};
         this.vClients[ runNo ] = vClient;
 
         let spObj = {
             ident: semaforPath,
+            cmd: cmdToDo,
             'sp': sp,
             'runNo': runNo,
             'status' : 'running ...',
@@ -138,7 +145,7 @@ class serveroven{
             'exitCode': undefined,
             'stdout': [],
             'stderr': [],
-            recipeStart,
+            'recipe': recipeStart,
             'vClients':[ runNo ]
         };
         this.spList.push( spObj );
@@ -228,9 +235,61 @@ class serveroven{
         if( sapi.length ==  4 ){
             res.end('4');
             return 0;
+       
+        // sh  / /apis/oven/blessedGate
+        }else if( sapi.length >=  1 && sapi[0] == 'blessedGate' ){
+            res.writeHead(200,{
+                'Content-Type': 'text/plain; charset=utf-8',
+            });
+            //res.write('hi');
+            res.end('* abc\n* 1233111\n* xxxxaaa\n');
+            return 0;
         
-        
-        
+        // sh  / /apis/oven/sh
+        }else if( sapi.length >=  1 && sapi[0] == 'sh' ){
+            writeHeadChunke( res );
+            let shVer = '2601321126';
+            let shId = Date.now()%100;
+            let shObj = {
+                shId,
+                req,
+                res,
+                tStart: Date.now(),
+                tEnd: undefined
+            };
+            
+            console.log('[/apis/oven/sh] client .. shId:',shObj.shId);
+            let cmds = [
+                'clear',
+                'echo -n "# shId:[ '+shObj.shId+' ] | @:[ '+bUrl+' ] | "',
+                'date',
+                'echo "# "',
+                'sCols=`tput cols`',
+                'mWidth=$(($sCols-20))',
+                'sLines=`tput lines`',
+                'echo "# Console size: [ $sCols x $sLines ] max width [ $mWidth ]"',
+                'dialog --infobox "Hello at api_oven a.k.a. TUI oven\n\t* ver: '+shVer+'" 5 $mWidth',
+                'sleep 1',
+            ];
+            
+            res.write( 
+                cmds.join('\n')+'\n'
+            );
+            
+            let chunkI = setInterval(()=>{
+                res.write( 
+                    'date\n'
+                );            
+            },1000);
+            
+            setTimeout(()=>{
+                clearInterval( chunkI );
+                res.end( 
+                    'sleep 5; clear;echo "# Exiting"'+'\n'
+                );
+            }, 5000 );
+            
+            //return 0;
         
         // intux  / /apis/oven/intux
         }else if( sapi.length >=  1 && sapi[0] == 'intux' ){
@@ -275,7 +334,7 @@ class serveroven{
         // to get list of current home dir CookBooks ~/.viteyss/oven
         }else if( sapi.length >=  1 && sapi[0].startsWith('dir') && sapi[0] != 'dirUpdate'  ){
             writeHeadChunke( res );
-            res.end( JSON.stringify( this.dir )+'\n');
+            res.end( JSON.stringify( this.ovenM.dirs )+'\n');
             return 0;
 
 
@@ -292,16 +351,17 @@ class serveroven{
             let nAdressUrl = sapi.filter( se => si++ != 0 ).join('/');
 
             if( sapi.length > 1 ){
+                // TOFIX
                 nAdressUrl = '/'+nAdressUrl;
                 console.log('[oven] have more? nAdressUrl: [ '+nAdressUrl+' ]  sapi ',sapi);
             }
             
-            this.updateDirWith(nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
+            this.ovenM.updateDirWith( nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
             
             //this.readHomeCookBook();
-            //this.dir['tRebuildHomeCookBook'] = Date.now() - tStart;
-            //res.write( JSON.stringify( this.dir ) );
-            res.end( JSON.stringify( this.dir )+'\n');
+            //this.ovenM.dirs['tRebuildHomeCookBook'] = Date.now() - tStart;
+            //res.write( JSON.stringify( this.ovenM.dirs ) );
+            res.end( JSON.stringify( this.ovenM.dirs )+'\n');
             console.log('[oven] -> dirUpdate - CookBook in '+( (Date.now() - tStart)/1000 )+' sec.');
             return 0;
 
@@ -309,7 +369,14 @@ class serveroven{
         // http://localhost:8080/apis/oven/QTaskList
         }else if( sapi.length ==  1 && sapi[0] == 'QTaskList' ){
             writeHeadChunke( res );
-            res.end( JSON.stringify( this.spList )+'\n' );
+            let spL = this.spList;
+            spL.forEach( spi => {
+                delete spi.sp['stdin'];
+                delete spi.sp['stdout'];
+                delete spi.sp['stderr'];
+                delete spi.sp['stdio'];
+            } );
+            res.end( JSON.stringify( spL )+'\n' );
             return 0;
 
         
