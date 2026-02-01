@@ -18,10 +18,10 @@ class ovenRun{
 
 class oven{
 
-    constructor( oName, homePath, srcHomePath ){
+    constructor( oName, homePath, srcHomePath = undefined ){
         this.oName = oName;
         this.homePath = homePath; 
-        this.srcHomePath = srcHomePath;
+        this.srcHomePath = srcHomePath == undefined ? '/home/yoyo/Apps/viteyss-site-oven' : srcHomePath;
         this.ENVs = {};
         this.dirs = {};
         this.adressUrl = '/';
@@ -31,7 +31,7 @@ class oven{
         this.logs = [];
         this.logsMax = 10;
         
-        this.readHomeCookBook_init();
+        //this.readHomeCookBook_init();
     
     }
     

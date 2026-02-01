@@ -63,20 +63,32 @@ function ovenDirEmpty( thomePath, dirname ){
     let dirList = dirListAll.filter( di => fs.statSync( path.join( pathBase, di ) ).isDirectory()  );
     let chs = new Array( 'channels' in jIn ?  jIn.channels : 10 ).fill({});
     
-    for( let ci=0,chc=chs.length; ci<chc; ci++){
+    let chsStatus = {};
+    
+    let ci,chc
+    for( ci=0,chc=chs.length; ci<chc; ci++){
         if( dirListAll.findIndex( fi => fi == `0_ch${ci}.js`) != -1 ){
             chs[ ci ] = JSON.parse( fs.readFileSync( path.join( pathBase, `0_ch${ci}.js` ) ).toString() );
             chs[ ci ]['chNo'] = ci;
             chs[ ci ]['basenameAdressUrl'] = path.basename( pathBase );
-            console.log( '#* channel'+ci+' ... OK ');
+            chsStatus[ 'ch_'+ci ] = 'ok';
         }else{
-            console.log( '#* channel'+ci+' not set ');
+            chsStatus[ 'ch_'+ci ] = 'NOk';
         }
         
     }
+
+
+
+    console.log( '# channels ('+chc+'):\n'+
+        '#  [ '+JSON.stringify(chsStatus).replaceAll('"ch_', '').replaceAll('","','').replaceAll('":"',':').replaceAll('",',' | ').replaceAll('"}','').replaceAll('{','')+' ]'
+        
+    );
+
     let tr = { 
         name: 'name' in jIn ? jIn.name : 'D:'+path.basename( pathBase ),
         channels: chs,
+        chsStatus,
         dirList: dirList,
         jIn
 

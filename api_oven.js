@@ -1,14 +1,17 @@
 import { spawn } from 'node:child_process';
+
 import {dirname} from 'node:path'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url';  
+
 import { writeHeadChunke }  from './libs/ovenHttp.js';
 import { cl2, linesToAppendArray, 
     chkCasheDir, ovenDirEmpty, 
     ovenLayoutToObjectFromJson, ovenDirToObj 
     } from './libs/ovenHelper.js';
-import { stderr } from 'node:process';
+
+
 import { oven } from './libs/ovenMain.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,7 +48,7 @@ class serveroven{
         // remove it --- END
         
         this.ovenM = new oven( 'as1', this.homePath, __dirname );
-        
+        this.ovenM.readHomeCookBook_init();
         //this.mapleafletPath = '/home/iloo/Projects/ilooViteYss/sharelibs/viteyss-site-mapleaflet';
         //this.mapleafletPath = '/home/yoyo/Apps/viteyss-site-mapleaflet';
         
