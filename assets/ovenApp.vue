@@ -545,7 +545,7 @@ keys in ovenRun:
     title="Save is free channel"
     >
     <option value="-1">[⠺] - select channel to stor in ...</option>
-    <option v-for="ch in getChannelFrom( oven.adressUrl ).length"
+    <option v-for="ch in getChannelsFrom( oven.adressUrl ).length"
         :value="ch-1"
         :selected="false"
         >
@@ -933,15 +933,16 @@ methods:{
     
     // dir CookBook START
 
-    
-    getChannelFrom( adressUrl ){
+    // MOVED TO OVENMAIN
+    getChannelsFrom( adressUrl ){
         console.log('[oven] getChannelFrom ... adressUrl:('+adressUrl+') \n oven.dir now\n',this.oven.dir);
         return this.oven.dir[ adressUrl ]['layout']['channels'];
     },
-
+    // MOVED TO OVENMAIN
     getChannelFromNo( adressUrl = '', chNo ){
         return this.oven.dir[ adressUrl ]['layout']['channels'][ chNo ];
     },
+    // MOVED TO OVENMAIN
     getChanneltargetData( targetData ){
         return this.oven.dir[ targetData.adressUrl ]['layout']['channels'][ targetData.chNo ];
     },
@@ -1267,7 +1268,7 @@ methods:{
     
 
     
-
+    // TO MOVE TO OVENMAIN
     getChannelsFreeToArray( adressUrl = undefined ){
         if( adressUrl == undefined ){
             NO

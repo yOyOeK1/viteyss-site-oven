@@ -158,12 +158,18 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 
 
+#### 260131
+
+- ovenMain.js reogar in api_oven
+
+- experiments with `blessedGate` `sh` 
+
+
+
 #### 260130.3
 
 - [x] `ovenApp` inject `ovenSelectod` to recive from out events
 - [x] `ODdataWrapType` now get recipe as arg
-
-
 
 #### 260130.2
 
