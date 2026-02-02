@@ -122,13 +122,15 @@ function cl2( res, str ){
 }
 
 function linesToAppendArray( res, lines, arrayTo ){
-        for( let line of `${lines}`.split('\n') ){
-            arrayTo.push( line );
-            cl2(res,   '   '+line );
-        }
-        
-        return arrayTo;
+    let linesSplit = [];
+    for( let line of `${lines}`.split('\n') ){
+        arrayTo.push( line );
+        linesSplit.push( line );
+        //cl2(res,   '   '+line );
     }
+    
+    return {arrayTo, linesSplit };
+}
 
 export {  cl2, linesToAppendArray, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj }
 

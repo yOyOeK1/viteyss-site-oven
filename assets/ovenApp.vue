@@ -704,6 +704,7 @@ import OvDir from './ovDir.vue';
 import OvENVView from './ovENVView.vue';
 import TagsColector from '@UiAssets/tagsColector.vue';
 import { getDefRecipe, ODdataWrapType } from '../libs/ovenDefinitions';
+import { msgsCODES } from '../libs/ovenHttp.js';
 
 
 
@@ -975,9 +976,8 @@ methods:{
 
         }else if( data.action == 'sub' ){
                                    
-                                   
+            // MOVED TO OVENMAIN ---- START         
             let nAdre = this.oven.adressUrl;
-
             
             if( data.chNo == -1 ){
                 nAdre = this.oven.adressUrl.substring( 0, nAdre.lastIndexOf('/')-1 );
@@ -991,13 +991,14 @@ methods:{
                 console.log('[oven] will swap CookBook @@ ... skip it\'s now current');
                 return 1;
             }
-            
+            // MOVED TO OVENMAIN --- END
             
             // check if need to load dir by adressUrl
             if( nAdre in this.oven.dir ){
                 console.log('[oven] will swap CookBook target ... OK nAdre');
                 this.oven.adressUrl = nAdre;
                 this.getChannelsFreeToArray( nAdre );
+                
             }else{
 
                 console.log('[oven] will swap CookBook target ... fetching nAdre');
@@ -1010,8 +1011,6 @@ methods:{
                 console.log('[oven] will swap CookBook target ... not ok');
                 return 1;
             }
-
-
             
 
         }else{
@@ -1137,6 +1136,60 @@ methods:{
     
     
 
+    cunksResult_resultObject( linesIn, asChunkFilter = false ){
+        console.log('[ chunksResult ] 59943 ',(typeof linesIn),' -> ',linesIn);
+        let tr = {
+            'cunksResult_resultObject':1,
+            runNo: -1,
+            'lines': [],
+            chunkTr: [],
+            linesC: -1,
+            res: [],
+            exitCode:undefined,
+        };
+        let lData = false;
+
+        let markerLine = false;
+        for( let l of linesIn ){
+            markerLine = false;
+            
+            if( l.indexOf('][sp][data] ...') != -1 ){
+                tr.runNo = l.substring(1).split(']')[0];
+                markerLine = true;
+            }else if( 
+                l.indexOf(']   # GOGO ... #') != -1 ||
+                l.indexOf(']# [@@] ping client[ ') != -1 ||
+                l == '' ){
+                markerLine = true;
+            
+                
+            }else if( l.startsWith( msgsCODES['START_STDIO'] ) ){
+                lData = true;
+                markerLine = true;
+
+            }else if( lData && l.indexOf('][sp][close] ,') != -1 ){
+                tr.exitCode = l.split(',')[1];
+                markerLine = true;
+            
+            }else if( lData &&  tr.exitCode != undefined ){
+                markerLine = true;
+
+            }else if( lData && l != '' ){
+                tr.res.push( l );
+            }
+
+            if( l != '' && markerLine == false ){
+                tr.chunkTr.push ( l );
+            }   
+            
+            
+        }
+
+        console.log( tr );
+
+        return tr;
+    },  
+
 
 
 
@@ -1146,7 +1199,7 @@ methods:{
     //or
     //oven.ovenRuns[ n ].result.res
     // or depricated ovenChunksToLine - use this with result and .res 
-    cunksResult_resultObject( linesIn, asChunkFilter = false ){
+    cunksResult_resultObject_old( linesIn, asChunkFilter = false ){
         
         console.log('[ chunksResult ] 543 ',(typeof linesIn),' -> ',linesIn);
         if( typeof linesIn == 'string' ){
@@ -1193,6 +1246,7 @@ methods:{
                 }
             });
             tr.runNo = linesIn[0].substring( 1 ).split(']')[0];
+            
         }
 
 
@@ -1208,8 +1262,9 @@ methods:{
 
                     lis.push ( l );
                     
-                    if( l.endsWith('# GOGO ... #') )
-                    spDataStart = lNo;
+                    if( l.startsWith( msgsCODES['START_STDIO'] ) ){
+                        spDataStart = lNo;
+                    }
                 
                     lNo++
                 }   
@@ -1268,7 +1323,7 @@ methods:{
     
 
     
-    // TO MOVE TO OVENMAIN
+    // MOVEd TO OVENMAIN
     getChannelsFreeToArray( adressUrl = undefined ){
         if( adressUrl == undefined ){
             NO
@@ -1434,9 +1489,10 @@ methods:{
         for( let envN of Object.keys( this.ENVs ) )
             tr.push( `export oven_${envN}='${ this.ENVs[ envN ] }'` );
         
+        
         tr.push( `# set oven ENV --- END` );
 
-        return tr.join('\n')+';\n';
+        return tr.join(';\n')+'\n';
     },
     
     // ---- env bash export  ----  END

@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url';  
 
-import { writeHeadChunke }  from './libs/ovenHttp.js';
+import { msgsCODES, writeHeadChunke }  from './libs/ovenHttp.js';
 import { cl2, linesToAppendArray, 
     chkCasheDir, ovenDirEmpty, 
     ovenLayoutToObjectFromJson, ovenDirToObj 
@@ -105,23 +105,21 @@ class serveroven{
 
         let waitForEndInter = -1;
         let waitForEnd = true;
-        let cDir = chkCasheDir( res, this.casheFolder );
+        //let cDir = chkCasheDir( res, this.casheFolder );
         let semaforPath = `${this.casheFolder}/${Date.now()}_status_`;
         let extOk = true;
         
-        cl2(res, [
+        /*cl2(res, [
             ` viteyss-site-oven / startBeaking - ${this.url} ... `,
-            '',
+            ' ',
             ' will exec?    [ '+extOk+' ]',
-            ' cmd to run: ',
-            '               [ '+cmdToDo+' ]',
             ' runNo:        [ '+runNo+' ]',
             ' semafor path: [ '+semaforPath+ ' ]',
             ' entry date:   [ '+Date.now()+' ]',
             '',
             '',
             ].join('\n# ')
-        );
+        );*/
         
         if( extOk == false ){
             cl2(res,'No start extension not ok !! EXIT;');
@@ -129,13 +127,17 @@ class serveroven{
         }
 
         let vClientsOnline = true;
+        //msgsCODES['start']
         let sp = spawn( 
-            //'echo "# GOGO ... #";'+
-            cmdToDo, { shell: true } );
+            `echo '${msgsCODES['START_STDIO']}_${runNo}';`+
+            cmdToDo
+            //'echo "'+msgsCODES['END_STDIO']+'_'+runNo+'";'
+            , { shell: true } );
         //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
         let vClient = { id: runNo,'online': vClientsOnline, req, res};
         this.vClients[ runNo ] = vClient;
-
+        
+        //"# set oven ENVexport oven_home=$HOME'/.viteyss/oven'export oven_adressUrl=''export oven_my_chNo='-1'export oven_my_rName='debug_test'# set oven ENV --- END;echo 'Pwd: [ '`pwd`' ] ';"
         let spObj = {
             ident: semaforPath,
             cmd: cmdToDo,
@@ -156,14 +158,16 @@ class serveroven{
         
 
         sp.stdout.on( 'data', d =>{
-            cl2(res,           '[sp][data] ... ');
-            spObj.stdout = linesToAppendArray( res, d, spObj.stdout );
+            let {arrayTo, linesSplit } = linesToAppendArray( res, d, spObj.stdout );
+            cl2(res,           '[sp][data] ... \n'+linesSplit.join('\n') );
+            spObj.stdout = arrayTo;
            
         });
 
         sp.stderr.on( 'data', d =>{
-            cl2(res, '[sp][err] ... ');
-            spObj.stderr = linesToAppendArray( res, d, spObj.stderr );
+            let {arrayTo, linesSplit } = linesToAppendArray( res, d, spObj.stderr );
+            cl2(res, '[sp][err] ... \n'+linesSplit.join('\n') );
+            spObj.stderr = arrayTo;
         });
 
         sp.on('close', exitCode => {
@@ -359,7 +363,7 @@ class serveroven{
                 console.log('[oven] have more? nAdressUrl: [ '+nAdressUrl+' ]  sapi ',sapi);
             }
             
-            this.ovenM.updateDirWith( nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
+            this.ovenM.updateDirsWith( nAdressUrl, ovenDirToObj( this.homePath,  __dirname, nAdressUrl ) );
             
             //this.readHomeCookBook();
             //this.ovenM.dirs['tRebuildHomeCookBook'] = Date.now() - tStart;
@@ -403,8 +407,8 @@ class serveroven{
             console.log('[sp]Doit cmd got: ['+cmdToDo+']');
 
             if( cmdToDo.startsWith('b64:') ){
-                console.log(`[sp] command as base64 ...`);
                 cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
+                console.log(`[sp] command as base64 ...\n`,cmdToDo,'\n----------------------------END');
             }
 
 
