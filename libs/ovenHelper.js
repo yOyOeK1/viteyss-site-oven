@@ -121,7 +121,7 @@ function cl2( res, str ){
     }
 }
 
-function linesToAppendArray( res, lines, arrayTo ){
+function linesToAppendArray( lines, arrayTo ){
     let linesSplit = [];
     for( let line of `${lines}`.split('\n') ){
         arrayTo.push( line );
