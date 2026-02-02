@@ -22,7 +22,7 @@ let getDefRecipe = (
     "liveSes": false,
     "intervalEverySec": 0,
     "iterator": -1,
-    "sharedSession": false,
+    "sharedSession": true,
     "onlyWhenImOnline": true,
     
     "saveChannelNo": chNo,
