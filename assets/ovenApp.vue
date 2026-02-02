@@ -428,7 +428,7 @@ keys in ovenRun:
         id="reconlWheImOn"></input>
     <label for="reconlWheImOn"
         style="display: inline;">
-        kill after disconnect TODO
+        only when I'm online TODO
     </label><br>
 
     <br></br>
@@ -1054,14 +1054,26 @@ methods:{
             }             
             
         ){
-        
+
+        let fetchOpts = {};
+    
         if( targetData != undefined ){
+            let srcRecipe = this.getChanneltargetData( targetData );
+
             this.oven.chsRuns.push({
+                recipe: srcRecipe,
                 targetData,
                 entryDate: Date.now(),
                 ovenRun: ovenRunEntry
             });
             console.log('[ovenFetch] targetData defined targetData:',targetData,'\n\n over chsRuns: \n', this.oven.chsRuns );
+            fetchOpts = {
+                'method': 'POST',
+                headers:{
+                    "Content-Type": "onDoFeth/b64",
+                    "recipe":JSON.stringify( srcRecipe ),
+                },
+            };
         }
             
         
@@ -1104,7 +1116,7 @@ methods:{
             }
         };
         let onCBt = onCB;
-        return fetch( url )
+        return fetch( url, fetchOpts )
             .then( res => {
                 let resStream = readAllChunks( res.body );
                 //console.log('[ovenFetch] res 20', resStream );

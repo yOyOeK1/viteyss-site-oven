@@ -13,6 +13,7 @@ import { cl2, linesToAppendArray,
 
 
 import { oven } from './libs/ovenMain.js';
+import { debug } from 'node:console';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -95,13 +96,18 @@ class serveroven{
        
 
 
-    startBeaking=( req, res, cmdToDo, recipeStart = undefined )=>{        
+    startBeaking=( req, res, cmdToDo, recipe = undefined )=>{        
         this.runNo++;
         let runNo = `${this.runNo}`;
         res['runNo'] = runNo;
-        let clientOnline = 1;        
+        let clientOnline = 1;    
+        let vClientsOnline = true;    
         writeHeadChunke( res );
         
+        //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
+        let vClient = { id: runNo,'online': vClientsOnline, req, res};
+        this.vClients[ runNo ] = vClient;
+
 
         let waitForEndInter = -1;
         let waitForEnd = true;
@@ -126,22 +132,14 @@ class serveroven{
             return 0;
         }
 
-        let vClientsOnline = true;
-        //msgsCODES['start']
-        let sp = spawn( 
-            `echo '${msgsCODES['START_STDIO']}_${runNo}';`+
-            cmdToDo
-            //'echo "'+msgsCODES['END_STDIO']+'_'+runNo+'";'
-            , { shell: true } );
-        //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
-        let vClient = { id: runNo,'online': vClientsOnline, req, res};
-        this.vClients[ runNo ] = vClient;
         
-        //"# set oven ENVexport oven_home=$HOME'/.viteyss/oven'export oven_adressUrl=''export oven_my_chNo='-1'export oven_my_rName='debug_test'# set oven ENV --- END;echo 'Pwd: [ '`pwd`' ] ';"
+        //msgsCODES['start']
+
+
         let spObj = {
             ident: semaforPath,
             cmd: cmdToDo,
-            'sp': sp,
+            'sp': undefined,
             'runNo': runNo,
             'status' : 'running ...',
             'tEnd': undefined,
@@ -150,28 +148,84 @@ class serveroven{
             'exitCode': undefined,
             'stdout': [],
             'stderr': [],
-            'recipe': recipeStart,
+            recipe,
             'vClients':[ runNo ]
         };
+        
+        
+        if( recipe != undefined ){
+            // look for shared recipy running .... START
+            let spRunning = this.spList.filter( 
+                s => s.end == undefined && s.exitCode == undefined && s.recipe.sharedSession &&
+                s.recipe.mediumProtocal == recipe.mediumProtocal &&
+                s.recipe.topicAddress == recipe.topicAddress &&
+                s.vClients.indexOf( runNo ) == -1
+            );
+            if( spRunning.length == 1 ){
+                
+                res.write('# comming ... chunk ...\n');
+                
+                spRunning[0].vClients.push( runNo );
+                
+                console.log('[have share 1 ....]',spRunning[0]);
+                return 1;
+                //process.exit(11);
+                // look for shared END
+            }
+        }
+        
         this.spList.push( spObj );
+
+        
+        let sp = spawn( 
+            `echo '${msgsCODES['START_STDIO']}_${runNo}';`+
+            cmdToDo
+            //'echo "'+msgsCODES['END_STDIO']+'_'+runNo+'";'
+            , { shell: true, detached: false, } );
+        spObj.sp = sp;
+
+        
+        
+        //"# set oven ENVexport oven_home=$HOME'/.viteyss/oven'export oven_adressUrl=''export oven_my_chNo='-1'export oven_my_rName='debug_test'# set oven ENV --- END;echo 'Pwd: [ '`pwd`' ] ';"
+        
         //spStatus = 'running ...';
         
+        let tvClients = this.vClients;
+        let tspList = this.spList;
 
         sp.stdout.on( 'data', d =>{
-            let {arrayTo, linesSplit } = linesToAppendArray( res, d, spObj.stdout );
-            cl2(res,           '[sp][data] ... \n'+linesSplit.join('\n') );
+
+            let {arrayTo, linesSplit } = linesToAppendArray( d, spObj.stdout );
+
+            if( spObj.vClients.length > 0 ){
+                spObj.vClients.forEach( ciRID => {
+                    if( ciRID != -1 )
+                        cl2( tvClients[ ciRID ]['res'],           '[sp][data] ...['+runNo+']:vC['+ciRID+'] \n'+linesSplit.join('\n') );
+
+                });
+            }
+
             spObj.stdout = arrayTo;
            
         });
 
         sp.stderr.on( 'data', d =>{
-            let {arrayTo, linesSplit } = linesToAppendArray( res, d, spObj.stderr );
-            cl2(res, '[sp][err] ... \n'+linesSplit.join('\n') );
+            let {arrayTo, linesSplit } = linesToAppendArray( d, spObj.stderr );
+
+            //cl2(res, '[sp][err] ... \n'+linesSplit.join('\n') );
+            if( spObj.vClients.length > 0 ){
+                spObj.vClients.forEach( ciRID => {
+                    if( ciRID != -1 )
+                        cl2( tvClients[ ciRID ]['res'],           '[sp][err] ...['+runNo+']:vC['+ciRID+'] \n'+linesSplit.join('\n') );
+
+                });
+            }
+            
             spObj.stderr = arrayTo;
         });
 
         sp.on('close', exitCode => {
-            cl2(res, ['[sp][close] ',exitCode]);
+            //cl2(res, ['[sp][close] ',exitCode]);
             clearInterval( waitForEndInter );
             
             spObj.status='done';
@@ -179,13 +233,31 @@ class serveroven{
             spObj.tEnd = Date.now();
             //waitForEnd = false
             //cl2(res, '# [sp][close] BakeInPlace');
-            res.end('# ----- DONE');
+            //res.end('# ----- DONE');
             waitForEndInter = -1;
             
+
+            if( spObj.vClients.length > 0 ){
+                spObj.vClients.forEach( ciRID => {
+                    if( ciRID != -1 ){
+                        cl2( tvClients[ ciRID ]['res'], ['[sp][close] ',exitCode] );
+                        tvClients[ ciRID ]['res'].end('# ----- DONE');
+                        tvClients[ ciRID ] = -1;
+                        clientOnline = 0;
+                        vClientsOnline = false;
+                    }
+
+                });
+            }
+
+
 
         });            
         sp.stdin.end();
         
+
+
+
         waitForEndInter = setInterval(()=>{
             if( waitForEnd == false || spObj.status == 'done' ){
             
@@ -211,8 +283,21 @@ class serveroven{
             this.cl('\n\n['+runNo+'][##] http client left close\n'+
                 '# TODO vClients ... ')
                 ;
+
+            this.vClients[ runNo ] = -1;
             clientOnline = 0;
             vClientsOnline = false;
+
+            // if recipe to kill process not background ones
+            if( spObj.recipe != undefined && 
+                spObj.recipe.onlyWhenImOnline == true &&
+                spObj.exitCode == undefined
+            ){
+                console.log('[@@] client close session.\n But process still running ... \n Will kill process ... pid [ '+sp.pid+' ]');
+                spawn( `pkill -e -P ${sp.pid}`, { shell: true, detached: false, } );
+
+            }
+
 
 
         });
@@ -405,7 +490,28 @@ class serveroven{
         }else if( sapi.length ==  2 && sapi[0].startsWith('cmd') ){
             let cmdToDo = `${sapi[1]}`;
             console.log('[sp]Doit cmd got: ['+cmdToDo+']');
+            let recipe = undefined;
+            
 
+
+            if( req.method == 'POST' ){
+                //'
+                let resOfH = {
+                    "mediumProtocal":"cmd","setENV":[],"topicAddress":"echo \'Pwd: [ \'`pwd`\' ] \';","rName":"Home of script - pwd","valType":"raw","wrapType":"toast","liveSes":false,"intervalEverySec":0,"iterator":-1,"sharedSession":true,"onlyWhenImOnline":false,"chNo":0,"basenameAdressUrl":"oven","sp":{"tStart":0,"tPing":0,"tEnd":0,"exitCode":-1,"statusNow":"","resCount":0,"result":[]},"tStart":1770042886840,"statusNow":"started"
+                };
+
+                let hs = req.headers;
+                if( 'recipe' in hs ){
+                    console.log('[sp] POST cmd0 ... with recipe ! NICE\nrecipe:\n',hs.recipe);
+                    recipe = JSON.parse( hs.recipe );
+                }
+
+            }
+
+
+
+            
+            
             if( cmdToDo.startsWith('b64:') ){
                 cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
                 console.log(`[sp] command as base64 ...\n`,cmdToDo,'\n----------------------------END');
@@ -416,7 +522,7 @@ class serveroven{
             //process.exit( 3 );
 
 
-            this.startBeaking( req, res,  cmdToDo);
+            this.startBeaking( req, res,  cmdToDo, recipe );
             return 0;
 
 
