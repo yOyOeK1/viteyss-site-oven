@@ -953,11 +953,12 @@ methods:{
         console.log('[dirCh_click] data ',data);
 
         if( data.action == 'click' ){
-
             let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
+            chObj['adressUrl'] = data.adressUrl;
 
             if( !('sp' in chObj ) ) chObj['sp'] = {
-                tStart: 0, tPing:0, tEnd: 0, exitCode:-1, statusNow:'', resCount:0, result:[]
+                tStart: 0, tPing:0, tEnd: undefined, exitCode: undefined, statusNow:'', resCount:0, result:[] ,
+                widget:'', widgetColor:'012001',
             };
 
             this.onProbeSelectorFrom( chObj, data );
@@ -1160,12 +1161,16 @@ methods:{
             exitCode:undefined,
         };
         let lData = false;
-
         let markerLine = false;
+        
         for( let l of linesIn ){
             markerLine = false;
             
-            if( l.indexOf('][sp][data] ...') != -1 ){
+            if( lData && l.indexOf('][sp][close] ,') != -1 ){
+                tr.exitCode = l.split(',')[1];
+                markerLine = true;
+            
+            }else if( l.indexOf('][sp][data] ...') != -1 ){
                 tr.runNo = l.substring(1).split(']')[0];
                 markerLine = true;
             }else if( 
@@ -1179,10 +1184,6 @@ methods:{
                 lData = true;
                 markerLine = true;
 
-            }else if( lData && l.indexOf('][sp][close] ,') != -1 ){
-                tr.exitCode = l.split(',')[1];
-                markerLine = true;
-            
             }else if( lData &&  tr.exitCode != undefined ){
                 markerLine = true;
 
@@ -1197,7 +1198,11 @@ methods:{
             
         }
 
-        console.log( tr );
+        console.log( 'cunks result rult to OBJ \n',tr,{'exitCode':tr.exitCode} );
+
+
+        
+
 
         return tr;
     },  
@@ -1524,12 +1529,22 @@ methods:{
 
 
     msgWrapInLog( logObj ){ 
-        console.log(`[oven] wrap in logObj`,logObj);
+        console.log(`[oven]78888 wrap in logObj`,logObj);
         this.oven.logs.push( logObj );
         //{entryDate: Date.now(), title, msg }
 
     },
 
+    msgWrapInWidget( msg, targetData ){
+        console.log(`[oven] wrap in widget`,msg,' ... target ',targetData);
+        let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
+        chObj['tPing'] = Date.now();
+        chObj['statusNow'] = 'running';
+        //chObj['result'] = msg;
+        //:style="'background-color:#'+('1'=='0'?'d1d1d1':'f98a6f')+';'"
+        chObj['widget'] = `${msg}`;
+        //'d1d1d1' : 'f98a6f'
+    },
 
    msgWrapInType( msg, wrapType, targetData = undefined ){
         if( wrapType == 'toast' ){
@@ -1541,8 +1556,11 @@ methods:{
             this.msgWrapInLog( msg );
 
         }else if( wrapType == 'widget' ){
-            if( targetData == undefined )
+            if( targetData != undefined ){
+                this.msgWrapInWidget( msg, targetData );
+            } else {
                 this.msgWrapInLog( msg );
+            }
 
         }else if( wrapType == 'terminal' ){
             console.log(`[oven] msg wrap go to terminal ...`, msg );
@@ -1557,12 +1575,10 @@ methods:{
             this.msgWrapInLog( msg );
 
         else{
-            console.log('[over] wrap update channel]');
-            let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
-            chObj['tPing'] = Date.now();
-            chObj['statusNow'] = 'running';
+            console.log('[over] ENVHub rerouteENV ....');
+            
             //chObj['result'] = msg;
-            chObj['widget'] = msg;
+            //chObj['widget'] = msg+'xxx';
 
             this.$refs.ENVHub.reroutENV( `${msg}`, 
                 this.getChanneltargetData( targetData )
@@ -1900,7 +1916,7 @@ methods:{
                             try{
                             */
                                 let msgToSend = ODdataWrapType( '', resToProcess, valType, recipe );
-                                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t msg to send\n", msgToSend);
+                                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t wrapType:",wrapType,"\n\nmsg to send\n", msgToSend,'\n\ntargetData:\n',targetData);
                                 this.msgWrapInType(
                                     `${title}: ( ${valType} ) <br>${ msgToSend }`, 
                                     wrapType, targetData 
