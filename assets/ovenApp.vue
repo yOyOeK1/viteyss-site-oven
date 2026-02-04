@@ -953,15 +953,18 @@ methods:{
         console.log('[dirCh_click] data ',data);
 
         if( data.action == 'click' ){
-            let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
-            chObj['adressUrl'] = data.adressUrl;
+            let recipeO = this.getChannelFromNo( data.adressUrl, data.chNo );
+            recipeO['adressUrl'] = data.adressUrl;
 
+            /*
+            // sp 'sp' ['sp']
             if( !('sp' in chObj ) ) chObj['sp'] = {
                 tStart: 0, tPing:0, tEnd: undefined, exitCode: undefined, statusNow:'', resCount:0, result:[] ,
                 widget:'', widgetColor:'012001',
             };
+            */
 
-            this.onProbeSelectorFrom( chObj, data );
+            this.onProbeSelectorFrom( recipeO, data );
 
         }else if( data.action == 'edit' ){
             let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
@@ -1028,9 +1031,9 @@ methods:{
     oven_onSendKill( pid, sigNal ){
         console.log('[oven] cmd0 sendKill to pid: [ '+pid+' ] [ '+sigNal+' ] ' );
         this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
-            'onReady':(r)=>{
-                let cmdRes = this.cunksResult_resultObject( r );
-                console.log('[oven] cmd0 sendKill DONE',cmdRes );
+            'onReady':(r, resultObject )=>{
+                //let cmdRes = this.cunksResult_resultObject( r );
+                console.log('[oven] cmd0 sendKill DONE', resultObject );
                 //this.onQeryTasksNow();
                 }
         });
@@ -1046,10 +1049,12 @@ methods:{
         onCB = { onChunk: undefined, onReady: undefined }, 
         ovenRunEntry = { 
             'onDoFetch_notSetAttr':1, 
+            targetData,
             isFromWho,
             url,
             chunkTr: [], 
             res:[],
+            //exitCode: undefined,
             tStart: Date.now(),
             tEnd: undefined, 
             }             
@@ -1067,6 +1072,7 @@ methods:{
                 entryDate: Date.now(),
                 ovenRun: ovenRunEntry
             });
+
             console.log('[ovenFetch] targetData defined targetData:',targetData,'\n\n over chsRuns: \n', this.oven.chsRuns );
             fetchOpts = {
                 'method': 'POST',
@@ -1117,17 +1123,19 @@ methods:{
             }
         };
         let onCBt = onCB;
-        return fetch( url, fetchOpts )
+        fetch( url, fetchOpts )
             .then( res => {
                 let resStream = readAllChunks( res.body );
                 //console.log('[ovenFetch] res 20', resStream );
                 resStream.then( r => { 
                 
                     ovenRunEntry.res = this.cunksResult_resultObject( r ); 
+                    
                     ovenRunEntry.tEnd = Date.now();
                     
                     if( 'onReady' in onCBt && onCBt.onReady != undefined )
-                        onCBt.onReady( r );
+                        onCBt.onReady( r, ovenRunEntry );
+                        //onCBt.onReady( r );
                 
                 } );                
 
@@ -1475,10 +1483,10 @@ methods:{
         console.log('[oven] on save to history \n#  base64: length ( '+cmdShB64.length+' )\n#  cmd:\n\n'+cmdSh);
         
         this.onDoFetch( undefined, 'onSaveToHistory',  '/apis/oven/cmd0/b64:'+cmdShB64 ,{
-            'onReady':(r)=>{
-                let cmdRes = this.cunksResult_resultObject( r );
+            'onReady':(r, resultObject )=>{
+                let cmdRes = resultObject;//this.cunksResult_resultObject( r );
                 console.log('[oven] on save to history result .... \n',cmdRes );
-                if( cmdRes.exitCode == '0' ){
+                if( cmdRes.res.exitCode == '0' ){
                     $.toast( 'New entry in history file ...' );
                 }else{
                     $.toast( 'Save new entry in history file ... ERROR' );
@@ -1530,7 +1538,7 @@ methods:{
 
     msgWrapInLog( logObj ){ 
         console.log(`[oven]78888 wrap in logObj`,logObj);
-        this.oven.logs.push( logObj );
+        this.oven.logs.push( {title:'' , entryDate:Date.now(), msg:logObj} );
         //{entryDate: Date.now(), title, msg }
 
     },
@@ -1538,8 +1546,13 @@ methods:{
     msgWrapInWidget( msg, targetData ){
         console.log(`[oven] wrap in widget`,msg,' ... target ',targetData);
         let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
-        chObj['tPing'] = Date.now();
-        chObj['statusNow'] = 'running';
+        //chObj['tPing'] = Date.now();
+        //chObj['statusNow'] = 'running';
+
+        //tStart: 0, tPing:0, tEnd: undefined, exitCode: undefined, statusNow:'', resCount:0, result:[] ,
+        //widget:'', widgetColor:'012001'
+
+
         //chObj['result'] = msg;
         //:style="'background-color:#'+('1'=='0'?'d1d1d1':'f98a6f')+';'"
         chObj['widget'] = `${msg}`;
@@ -1836,38 +1849,40 @@ methods:{
         
         if( targetData != undefined ){
             let chObj = this.getChannelFromNo( targetData.adressUrl, targetData.chNo );
-            chObj['tStart'] = Date.now();
-            chObj['statusNow'] = 'started';
-            
+            //chObj['tStart'] = Date.now();
+            //chObj['statusNow'] = 'started';            
         }
 
 
         
-        if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
-            this.iterators.push(
-                setInterval( () => { 
-
-                    this.onOvenCompact_full( 'nooo custom', 
-                        cmdPrefix+postProcessCmd.cmd, 
-                        postProcessCmd.postProcess, 
-                        recipe.liveSes,
-                        targetData
-                    );
-
-                }, 
-                parseInt( recipe.intervalEverySec ) * 1000 
-                )
-            );
-
-        }else{
-         
+        let makeItAs = () => {
             this.onOvenCompact_full( 'nooo custom', 
                 cmdPrefix+postProcessCmd.cmd, 
                 postProcessCmd.postProcess, 
                 recipe.liveSes,
                 targetData
             );
+        };
+        
+        if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
+            this.iterators.push(
+                setInterval( 
+                    () => makeItAs(), 
+                    parseInt( recipe.intervalEverySec ) * 1000 
+                )
+            );
+            makeItAs();
 
+        }else{
+            makeItAs();
+            /*
+            this.onOvenCompact_full( 'nooo custom', 
+                cmdPrefix+postProcessCmd.cmd, 
+                postProcessCmd.postProcess, 
+                recipe.liveSes,
+                targetData
+            );
+            */
         }
 
     },
@@ -1892,76 +1907,27 @@ methods:{
 
         
         let postProcess = ( chunkNo, resToProcess ) => {
-            //console.log('[oven] -> postprocess have valTypes ',JSON.stringify(this.oven.opts.valType));
-
-            if( wrapType == 'log' ){
-                console.log('[oven 1111RAW]\n\tresToProcess:\n',( typeof resToProcess),'\n\tresToProcess:\n',resToProcess);
-                //this.msgWrapInType( `${title}: ( raw2 ): ${resToProcess}`, wrapType, targetData );
-                this.msgWrapInType( {entryDate: Date.now(), title, msg:resToProcess }, wrapType, targetData ); // as raw do msg as logObj
            
-            /*}else if( valType == 'toString' ){
-                console.log('[oven 2222toString]\n\tresToProcess:\n',( typeof resToProcess),'\n\tresToProcess:\n',resToProcess);
-                this.msgWrapInType( {entryDate: Date.now(), title, msg:resToProcess }, wrapType, targetData ); // as toString do msg as logObj
-            */
-            }else if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 && resToProcess.length > 0 ){
-
-
-
-
-                //let msgToSend = undefined;
-                
-                // as all result at once 
-                /*if( valType == 'toString' ){ 
-                    if( resToProcess ){
-                            try{
-                            */
-                                let msgToSend = ODdataWrapType( '', resToProcess, valType, recipe );
-                                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t wrapType:",wrapType,"\n\nmsg to send\n", msgToSend,'\n\ntargetData:\n',targetData);
-                                this.msgWrapInType(
-                                    `${title}: ( ${valType} ) <br>${ msgToSend }`, 
-                                    wrapType, targetData 
-                                );
-                                /*
-                            } catch(e){
-                                console.log('EE res line to integer no good error\n',e);
-                            }
-                        
-                        }
+            //console.log('[oven] -> postprocess have valTypes ',JSON.stringify(this.oven.opts.valType));
+            let msgToSend = undefined;
             
-                }else{
-                
-                    resToProcess.forEach( r => {
-                        if( r ){
-                            try{
-                                msgToSend = ODdataWrapType( '', r, valType );
-                                console.log('[oven 6789 - '+valType+'] resToProcessLineByLine ->',r,"\n\t msg to send\n", msgToSend);
-                                this.msgWrapInType(
-                                    `${title}: ( ${valType} ) <br>${ msgToSend }`, 
-                                    wrapType, targetData 
-                                );
-                            } catch(e){
-                                console.log('EE res line to integer no good error\n',e);
-                            }
-                        
-                        }
+            if( this.oven.opts.valType.findIndex(  vts => `${vts}` == `${valType}` ) != -1 ){
 
-                    });
-                    
+                if( resToProcess.exitCode == undefined ){
+
+                    msgToSend = ODdataWrapType( '', resToProcess.chunkTr , valType, recipe );
+
+                }else{
+
+                    msgToSend = ODdataWrapType( '', resToProcess.res , valType, recipe );
+
                 }
 
-            */
-
-
-
-
-
-
-
-
-
-
-
-
+                console.log('[oven 6789 - '+valType+'] resToProcessALL ->',resToProcess,"\n\t wrapType:",wrapType,"\n\nmsg to send\n", msgToSend,'\n\ntargetData:\n',targetData);
+                this.msgWrapInType(
+                   ( wrapType != 'widget' ? `${title}: ( ${valType} ) <br>` : '')+`${ msgToSend }`, 
+                    wrapType, targetData 
+                );
 
 
 
@@ -1970,6 +1936,7 @@ methods:{
             } else {
                 console.log('EE 5678987 valType not supported [',valType,'] is array of ('+resToProcess.length+') \n resToProcess: ',resToProcess);
             }
+
         };
 
         
@@ -1983,7 +1950,6 @@ methods:{
                 
                 " `;
         }
-
 
 
         return {postProcess, cmd};
@@ -2106,14 +2072,14 @@ methods:{
         // final end
         if( cmd != undefined && liveSes == false ){
         
-            this.onDoFetch(
+            let ovenRunItem = this.onDoFetch(
                 targetData, 
                 'onOvenCompact_full - ReadyOnly', 
                 '/apis/oven/cmd0/b64:'+btoa( encodeURIComponent( cmd ) ),{
-                'onReady':(r)=>{
-                    let cmdRes = this.cunksResult_resultObject( r );
+                'onReady':(r, resultObject )=>{
+                    let cmdRes = resultObject;//this.cunksResult_resultObject( r );
                     let resToPass = cmdRes.res;
-                    console.log('[oven] onOvenCompact DONE',resToPass ,'\n postprocess:',postProcess );
+                    console.log('[oven] onOvenCompact DONE',resToPass ,'\n postprocess:',postProcess,'\n',{'exitCode':cmdRes.res.exitCode} );
                     //this.onQeryTasksNow();
                     if( postProcess != undefined ){
                         postProcess( 0, resToPass );
@@ -2130,11 +2096,11 @@ methods:{
         }else if( cmd != undefined && liveSes == true ){
         
             let chunkNo = 0
-            let doFetch = this.onDoFetch( 
+            let ovenRunItem = this.onDoFetch( 
                 targetData,
                 'onOvenCompact_full - kLive', 
                 '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
-                'onChunk':(r)=>{
+                'onChunk':(r, resultObject )=>{
                 
                     if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
                         let chunkTr = this.cunksResult_resultObject( r );                    
@@ -2188,40 +2154,42 @@ methods:{
     onCmdStrTocmdResConole( cmd ){
         let bta = btoa(this.getCmdEnvHeader()+cmd);
         // run by cmd 
-        console.log(`[oven1] Oven Run CMD ...\n[oven1]#$ [ ${atob( bta )} ]`);
         let lchunks = [];
+        
+        console.log(`[oven1] Oven Run CMD ...\n[oven1]#$ [ ${atob( bta )} ]`);
+        /*
         let ovenRun = { 
             'onCmdStrTocmdResConole':1,
             runNo:-1,
             cmd,
             tStart: Date.now(),
-            result: undefined,
+            res: undefined,
             tEnd: undefined
         };
-
+        */
 
         this.onDoFetch( undefined, 'onCmdStrTocmdResConole', '/apis/oven/cmd0/b64:'+bta,{
-            'onReady':(r)=>{
-                let cmdRes = this.cunksResult_resultObject( r );                
-                console.log('[oven1]  Oven Run CMD -> res .... ',JSON.stringify(cmdRes,null,4) );
+            'onReady':(r, resultObject )=>{
+                //let cmdRes = resultObject;//this.cunksResult_resultObject( r );                
+                console.log('[oven1]  Oven Run CMD -> res .... ',JSON.stringify(resultObject,null,4) );
                 
-                ovenRun.runNo = cmdRes.runNo;
-                ovenRun.result = cmdRes;
-                ovenRun.tEnd = Date.now();
+                //ovenRun.runNo = cmdRes.runNo;
+                //ovenRun.res = cmdRes;
+                //ovenRun.tEnd = Date.now();
                 this.getScreen();
                 
                 
 
             },
-            'onChunk':(r)=>{
-                let cmdRes = this.cunksResult_resultObject( r );
-                console.log('[oven1]  Oven Run CMD -> chunk  .... ',r);
-                ovenRun.result = cmdRes;
+            'onChunk':(r, resultObject  )=>{
+                //let cmdRes = this.cunksResult_resultObject( r );
+                console.log('[oven1]  Oven Run CMD -> chunk  .... ',resultObject);
+                //ovenRun.result = cmdRes;
                 this.getScreen();
             } 
         });
         
-        this.oven.ovenRuns.push( ovenRun );
+        //this.oven.ovenRuns.push( ovenRun );
         this.getScreen();
         
         

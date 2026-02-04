@@ -174,7 +174,7 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
         
         } else {
             console.error('EE4 ODdataWrapType data is not array!');
-            return data;
+            return l;
         
         } 
         

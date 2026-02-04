@@ -1,3 +1,4 @@
+import { debug } from 'console';
 import fs from 'fs'
 import path from 'path'
 
@@ -24,9 +25,8 @@ function ovenDirToObj( thomePath, ovenHomeSrcPath, pathBase = undefined ){
 
     let layoutR = ovenDir.findIndex( fName => fName == '0_layout.js' );
     let layoutName = layoutR == -1 ? {} : JSON.parse( fs.readFileSync( path.join( thomePath, '0_layout.js' ) ).toString() );
-
     let ovenObj = {
-        'layout': ovenLayoutToObjectFromJson( layoutName, dirPathScan ),
+        'layout': ovenLayoutToObjectFromJson( layoutName, dirPathScan, pathBase ),
         pathBase,
         ovenDir,
         dirPathScan,
@@ -57,19 +57,26 @@ function ovenDirEmpty( thomePath, dirname ){
 }
 
 
- function ovenLayoutToObjectFromJson( jIn, pathBase ){
+ function ovenLayoutToObjectFromJson( jIn, pathBase, ovenCookBookKey_adressUrl ){
     
     let dirListAll = fs.readdirSync( pathBase );
     let dirList = dirListAll.filter( di => fs.statSync( path.join( pathBase, di ) ).isDirectory()  );
     let chs = new Array( 'channels' in jIn ?  jIn.channels : 10 ).fill({});
     
     let chsStatus = {};
-    
+    let tNow = Date.now();
+
     let ci,chc
     for( ci=0,chc=chs.length; ci<chc; ci++){
         if( dirListAll.findIndex( fi => fi == `0_ch${ci}.js`) != -1 ){
             chs[ ci ] = JSON.parse( fs.readFileSync( path.join( pathBase, `0_ch${ci}.js` ) ).toString() );
             chs[ ci ]['chNo'] = ci;
+            chs[ ci ]['widget'] = '';
+            chs[ ci ]['widgetColor'] = '';
+            chs[ ci ]['tPing'] = tNow;
+            chs[ ci ]['tStart'] = tNow;
+            chs[ ci ]['statusNow'] = '';
+            chs[ ci ]['adressUrl'] = ovenCookBookKey_adressUrl;
             chs[ ci ]['basenameAdressUrl'] = path.basename( pathBase );
             chsStatus[ 'ch_'+ci ] = 'ok';
         }else{
