@@ -96,13 +96,13 @@ class serveroven{
        
 
 
-    startBeaking=( req, res, cmdToDo, recipe = undefined )=>{        
+    startBeaking=( req, res, cmdToDo, recipe = undefined,  )=>{        
         this.runNo++;
         let runNo = `${this.runNo}`;
         res['runNo'] = runNo;
         let clientOnline = 1;    
         let vClientsOnline = true;    
-        writeHeadChunke( res );
+        if( recipe == undefined ) writeHeadChunke( res );
         
         //let sp = spawn( 'echo "# GOGO ... #"; sh -s <<EOF\n '+cmdToDo+' \nEOF\n', { shell: true } );
         let vClient = { id: runNo,'online': vClientsOnline, req, res};
@@ -504,6 +504,7 @@ class serveroven{
                 if( 'recipe' in hs ){
                     console.log('[sp] POST cmd0 ... with recipe ! NICE\nrecipe:\n',hs.recipe);
                     recipe = JSON.parse( hs.recipe );
+                    writeHeadChunke( res );
                 }
 
             }
@@ -511,19 +512,19 @@ class serveroven{
 
 
             
-            
-            if( cmdToDo.startsWith('b64:') ){
-                cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
-                console.log(`[sp] command as base64 ...\n`,cmdToDo,'\n----------------------------END');
-            }
+
+                        if( cmdToDo.startsWith('b64:') ){
+                            cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
+                            console.log(`[sp] command as base64 ...\n`,cmdToDo,'\n----------------------------END');
+                        }
 
 
             //console.log('stop for now');
             //process.exit( 3 );
 
 
-            this.startBeaking( req, res,  cmdToDo, recipe );
-            return 0;
+                this.startBeaking( req, res,  cmdToDo, recipe );
+                return 0;
 
 
         //  / bakeInPlace / base64PathToFile

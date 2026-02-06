@@ -274,6 +274,7 @@ pennding now:</pre>
     
     
         <OvDir
+            :keyCount="OvDirKeyCount"
             :dir="oven.dir" 
             :adressUrl="oven.adressUrl"
             @dir-channel-click="onEmit_dirChannelClick"
@@ -600,14 +601,33 @@ keys in ovenRun:
     <i class="fa-solid fa-check"></i>
     <i class="fa-solid fa-xmark"></i>
 
+    |<br></br>
+    ▷
+    □
+    ◷
+    ☢
+    |
+    ◹
+    ◿
+    |
+    ▵
+    ▿
+    |
+    ●
+    ●
 
+
+    |<br></br>
+    ▶ ⏹ ⏸ ⏏ | ⏪ ⏩ | ● ● | ⊕ ⊖ ☢ ♽ ⚫ 🔴 🔵 🎯 ☯ ⛔ 
+    <br></br>
+    ◌̊  ◌̥  ◌ͦ  ◌゚ ⧉ ⧆ <br></br>
+    ♾ ⚆ ᴏ O o 0 . ⚇ ⚯ ⚮ ⚭ 
     |<br>
 
     <OvGroup
         gtitle="process action button set"
         v-if="oven.ovenMode == 'debug'"
         >
-
     
         <a @click=""
             title="Execute / bake it ...">
@@ -637,12 +657,8 @@ keys in ovenRun:
         |
         <i style="color:rgb(104, 141, 22);" 
             class="fa-solid fa-square-check"
-                title="Process exitCode 0"
-        
-        
-            ></i>
-        <i class="fa-solid fa-cube"></i>
-            
+                title="Process exitCode 0"       
+            ></i>            
         <i style="color:rgb(218, 0, 0);"
             class="fa-solid fa-square-xmark"
             title="Process exit with error"
@@ -719,11 +735,7 @@ components:{
 
 mounted(){
     setTimeout(()=>{
-        console.log('[oven] mounted ... setting adressUrl: ""');
-        this.onQeryOvenDirUpdate('');
-        this.oven.adressUrl = '';
-
-
+        
         console.log('* inject - ovenSelected ');
         window['ovenSelected'] = (basenameAdressUrl, chNo, msg ) => {
             let exKey = `exT${basenameAdressUrl}Ch${chNo}`;
@@ -737,6 +749,15 @@ mounted(){
         };
 
 
+        console.log('[oven] mounted ... setting adressUrl: ""');
+        this.onQeryOvenDirUpdate('');
+        //this.oven.adressUrl = '';
+        this.onQeryOvenDirUpdate(
+            '/aBasket', 
+            o=> {
+                //this.oven.adressUrl = '/aBasket';
+                this.oven.adressUrl = '';
+            });
 
 
     },500);
@@ -766,6 +787,8 @@ data(){
         modeHistory: [ ovenMode ],
 
         ENVs: {},
+
+        OvDirKeyCount:0,
 
         oven:{
             working: true,
@@ -1074,11 +1097,21 @@ methods:{
             });
 
             console.log('[ovenFetch] targetData defined targetData:',targetData,'\n\n over chsRuns: \n', this.oven.chsRuns );
+            
+            let trRecipe = {
+                'adressUrl': srcRecipe.adressUrl,
+                'chNo': srcRecipe.chNo,
+                'sharedSession':srcRecipe.sharedSession,
+                'mediumProtocal':srcRecipe.mediumProtocal,
+                'topicAddress':srcRecipe.topicAddress,
+                'onlyWhenImOnline':srcRecipe.onlyWhenImOnline,
+
+            };
             fetchOpts = {
                 'method': 'POST',
                 headers:{
                     "Content-Type": "onDoFeth/b64",
-                    "recipe":JSON.stringify( srcRecipe ),
+                    "recipe": JSON.stringify( trRecipe ),
                 },
             };
         }
@@ -1119,10 +1152,15 @@ methods:{
                 //console.log('[ovenFetch] res 3 chunk,', chunkStr);
 
                 if( 'onChunk' in onCB && onCB.onChunk != undefined )
-                    onCB.onChunk( chunkStr );
+                    onCB.onChunk( chunks, ovenRunEntry );
             }
         };
         let onCBt = onCB;
+
+        console.log('go fetch url\nurl\n',url, '\n\nfetchOpts\n',fetchOpts);
+
+
+
         fetch( url, fetchOpts )
             .then( res => {
                 let resStream = readAllChunks( res.body );
@@ -1556,6 +1594,7 @@ methods:{
         //chObj['result'] = msg;
         //:style="'background-color:#'+('1'=='0'?'d1d1d1':'f98a6f')+';'"
         chObj['widget'] = `${msg}`;
+
         //'d1d1d1' : 'f98a6f'
     },
 
@@ -1915,7 +1954,7 @@ methods:{
 
                 if( resToProcess.exitCode == undefined ){
 
-                    msgToSend = ODdataWrapType( '', resToProcess.chunkTr , valType, recipe );
+                    msgToSend = ODdataWrapType( '', resToProcess , valType, recipe );
 
                 }else{
 
@@ -1929,6 +1968,14 @@ methods:{
                     wrapType, targetData 
                 );
 
+                if( targetData != undefined ){
+                    setTimeout(()=> {
+                        console.log('[oven 6789 - '+valType+'] resToProcessALL -> is from channel so delay update ...');
+                        this.OvDirKeyCount++
+                        },
+                        300
+                    );
+                }
 
 
 
@@ -2112,7 +2159,9 @@ methods:{
                             postProcess( chunkNo, chunkTr.res );
                         } 
                         
-                    }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
+                    }else if( postProcess != undefined && 
+                        r.lastIndexOf(']# [@@] ping client[ ') == -1 
+                        ){
                         //TODO2//   
                         postProcess( chunkNo, r );
                     }
