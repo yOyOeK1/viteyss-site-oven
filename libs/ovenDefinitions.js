@@ -94,8 +94,8 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                 }else if( valType == 'toBraile' ){
 
                     let map =       " A1B'K2L@CIF/MSP\"E3H9O6R^DJG>NTQ,*5<-U8V.%[$+X!&;:4\\0Z7(_?W]#Y)=".split("").reduce((o, n, i) => {
-                    return o[n] =   "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿"[i],
-                        o[n.toLowerCase()] = o[n], o;
+                        return o[n] =   "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿"[i],
+                            o[n.toLowerCase()] = o[n], o;
                     }, {});
 
                     function toBraile(string) {
@@ -104,6 +104,11 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                     let bRes = toBraile( l );
                     console.log( bRes );
                     trWrap.push( '<pre>'+bRes+'</pre>' );
+
+                }else if( valType == 'A small plot TODO' ){
+                    let map = " ▁▂▃▄▅▆▇".split(''); // 8 long
+
+
 
                 //input list select submit
                 }else if( valType == 'input list select submit' ){
@@ -114,8 +119,10 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                     console.log('[OD A input list] '+l,' \n recipe ',JSON.stringify(recipe,null,4));
                     if( l != '' )
                         trWrap.push( '[ <a onclick="ovenSelected( \''+recipe.basenameAdressUrl+'\', '+recipe.chNo+', \''+l+'\' );">o</a> ] '+l );                   
-                                   
-                            
+                        
+                    
+                    
+
                 }else if( valType == 'A progress bar' ){
                 
                     let w = parseFloat(l);

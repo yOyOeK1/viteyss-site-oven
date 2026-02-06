@@ -2048,13 +2048,13 @@ methods:{
                 let divName = 'abc'+Date.now();
                 let postProcess = ( chunkNo, result ) => {
                     console.log('[oven]-diskSpace ',result);
-                    let rWords = result[2].split(' ');
+                    let rWords = result.res[1].split(' ');
                     let percInd = rWords.findIndex(o => o.endsWith('%') );
                     let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
                     let gigW = rWords.filter( w => w.length > 2 );
                     let gigAvail =  gigW[ 3 ];
                     $.toast({
-                        text:`Disk space at home: <br><br>${result[2]}<br><div id="${divName}"></div>`,
+                        text:`Disk space at home: <br><br>${result.res[1]}<br><div id="${divName}"></div>`,
                         afterShown: function () {
                             let justGage2 = new JustGage({
                                 id: divName,

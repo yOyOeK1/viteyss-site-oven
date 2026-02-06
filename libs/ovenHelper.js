@@ -118,6 +118,16 @@ let chkCasheDir = ( res, dirname ) => {
     return cFolder;
 };
 
+function cl2ts( res, title,str ){
+    if( res == undefined ){
+        console.log( '[local]'+title+str );
+    }else{
+        console.log( '['+res.runNo+']'+title+str );
+        res.write( str+"\n" );
+
+    }
+}
+
 function cl2( res, str ){
     if( res == undefined ){
         console.log( '[local]'+str );
@@ -139,6 +149,6 @@ function linesToAppendArray( lines, arrayTo ){
     return {arrayTo, linesSplit };
 }
 
-export {  cl2, linesToAppendArray, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj }
+export {  cl2, cl2ts, linesToAppendArray, chkCasheDir, ovenDirEmpty, ovenLayoutToObjectFromJson, ovenDirToObj }
 
 

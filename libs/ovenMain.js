@@ -174,10 +174,32 @@ class oven{
         }
         return tr.join('\n');
     } 
+    A_getLayout_asArray=()=>{
+        return this.getChannelsFrom();
+    } 
     // tui --- ENDS
     
     
     
+
+
+
+    /// oven work time --- START 
+
+    beakeRecipe( recipe ){
+
+    }
+
+    beakeRecipe_byAdresChNo( adressUrl, chNo ){
+        let recipe = this.getChannelFromNo( adressUrl, chNo );
+        
+        
+    }
+
+
+
+
+
 
 }
 
