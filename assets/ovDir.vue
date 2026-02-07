@@ -3,6 +3,22 @@
     color: rgba(0, 0, 0, 0.6);
     
 }
+.ovenRecipTools{
+    display: table-cell;float: right;
+    background-color: #ebe9d5a0;
+    border-radius: 7px;
+    border: 2px solid #ffaacc00;
+    box-shadow: 2px 2px 3px #5b085570;
+    position:absolute;
+    right:8px;
+    margin-top:-6px;
+    opacity: 0.5;
+}
+
+.ovenRecipTools:hover{
+    border:2px solid rgb(143, 120, 45);
+    opacity: 1.0;
+}
 
 </style>
 
@@ -43,8 +59,13 @@ in dir (cashe):
         'border-radius': '6px',
         border:'3px solid #'+chDatas[ chi ].borderColor
         }"
-    >
 
+
+
+    >
+    <!--@mouseover="$refs['recBtTools'+chi].style['background-color']= '#f6fbf5';"
+    @mouseout="$refs['recBtTools'+chi].style['background-color']= '#f600f5';"
+    -->
     <div v-if=" Object.keys(ch).length == 0 ">
         [{{ chi }}] 
 
@@ -59,11 +80,17 @@ in dir (cashe):
             getCellBgColor( chi )
         ">
 
-        <div style="display: table-cell;float: right;">
+        <div style="
+            
+            "
+            class="ovenRecipTools"
+            :ref="'recBtTools'+chi"
+            >
             ({{ chDatas[ chi ].doneList }})
 
             <OvProcessControll 
                 :psNow=" psNow[ chi ] "
+                @on-ps-action="onChannelAction( chi, 'ps-action', $event )"
                 /> | 
             <a 
                 :title="'Edit recipe ...'+JSON.stringify( ch, null, 4 )"
@@ -84,8 +111,7 @@ in dir (cashe):
         <div style="
             display: table-cell;
             ">
-            [{{ chi }}] 
-            - {{ ch['rName'] }}
+            <pre style="background-color: white;">[{{ chi }}] - {{ ch['rName'] }} </pre>
             <pre v-html="channels[ chi ].widget" class="fadeIcons"></pre><!--
             <pre v-html="chDatas[ chi ].contentW" class="fadeIcons"></pre>
                 <pre
@@ -243,6 +269,7 @@ methods:{
         */
               
         let lastRunId = -1;
+        let lastExitId = -1;
         this.oven.chsRuns.forEach( (cr,cuni) => {
             if( cr.targetData.chNo == chNo && cr.targetData.adressUrl == this.adressUrl ){
                 if( cr.ovenRun.tEnd == undefined ){
@@ -252,7 +279,7 @@ methods:{
                         targetSrc+=`\n`+cr.ovenRun.chunkTr.join('\n');
                 }else{
                     doneList++;
-
+                    lastExitId = cr.recipe.chNo;
                     this.exitCodes[ cr.recipe.chNo ] = parseInt( cr.ovenRun.res.exitCode );
                 }
             }
@@ -266,7 +293,8 @@ methods:{
         chData['contentW'] = targetSrc;
 
         if( doneList != 0 ){
-            this.psNow[ chNo ] = this.exitCodes[ chNo ] == 0 ? 'done ...' : 'error ...';
+            //this.psNow[ chNo ] = this.exitCodes[ chNo ] == 0 ? 'done ...' : 'error ...';
+            this.psNow[ chNo ] = this.exitCodes[ chNo ] == 0 ? 'done ...' : 'done ...';
             chData['borderColor'] = '00aaff';
 
 
@@ -284,10 +312,10 @@ methods:{
 
         return chData;
     },
-    onChannelAction( chNo, action = 'click' ){
-        if( [ 'click', 'edit', 'sub' ].indexOf( action ) != -1 ){
+    onChannelAction( chNo, action = 'click', extraArgs = undefined ){
+        if( [ 'click', 'edit', 'sub', 'ps-action' ].indexOf( action ) != -1 ){
             //let ch =  dir[ adressUrl ]['layout']['channels'][ chNo ];            
-            this.$emit('dir-channel-click', { action, 'adressUrl':this.adressUrl, chNo } );
+            this.$emit('dir-channel-click', { action, 'adressUrl':this.adressUrl, chNo, extraArgs } );
        
         }else{
             TODO

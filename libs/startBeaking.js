@@ -92,7 +92,7 @@ class Beakeary {
         
         let sp = spawn( cmdToDo, { shell: true, detached: false, } );
         spObj.sp = sp;
-        
+        let spPidSend = false;
         
         
         //"# set oven ENVexport oven_home=$HOME'/.viteyss/oven'export oven_adressUrl=''export oven_my_chNo='-1'export oven_my_rName='debug_test'# set oven ENV --- END;echo 'Pwd: [ '`pwd`' ] ';"
@@ -109,12 +109,20 @@ class Beakeary {
 
             if( spObj.vClients.length > 0 ){
                 spObj.vClients.forEach( ciRID => {
-                    if( ciRID != -1 )
+                    if( ciRID != -1 ){
+
+                        if( spPidSend == false ){
+                            linRes.linesSplit.push( msgsCODES['PID_NO']+','+sp.pid+',' );
+                            spPidSend = true;
+                        }
+                    
                         cl2ts( 
                             tvClients[ ciRID ]['res'], 
                             '[sp]['+desc+'] ... ['+runNo+']:vC['+ciRID+']',
                             linRes.linesSplit.join('\n') 
                         );
+
+                    }
 
                 });
             }
@@ -149,7 +157,7 @@ class Beakeary {
                 spObj.vClients.forEach( ciRID => {
                     if( ciRID != -1 ){
                         cl2( tvClient['res'], ['[sp][close] ',exitCode] );
-                        tvClients[ ciRID ]['res'].end( msgsCODES['END_STDIO']+'_'+runNo );
+                        if( tvClients[ ciRID ]['res'] != undefined ) tvClients[ ciRID ]['res'].end( msgsCODES['END_STDIO']+'_'+runNo );
                         tvClients[ ciRID ] = -1;
                         clientOnline = 0;
                         vClientsOnline = false;

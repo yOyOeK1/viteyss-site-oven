@@ -105,7 +105,8 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                     console.log( bRes );
                     trWrap.push( '<pre>'+bRes+'</pre>' );
 
-                }else if( valType == 'A small plot TODO' ){
+                }else if( valType == 'A small plot' ){
+                    // in line as 0,2,3,4,5 [,] - delimiter 
                     let map = " ▁▂▃▄▅▆▇".split(''); // 8 long
 
 

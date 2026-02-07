@@ -828,7 +828,7 @@ data(){
                     ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A progress bar',  
+                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A small plot', 'A progress bar',  
                     // submit
                     'input list select submit', 
                     'input text submit TODO',
@@ -989,6 +989,13 @@ methods:{
 
             this.onProbeSelectorFrom( recipeO, data );
 
+        }else if( data.action == 'ps-action' ){
+            let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
+            //oven_onSendKill( spi.sp.pid, 'KILL' )
+            this.oven_onSendPsKill( data );
+            
+
+
         }else if( data.action == 'edit' ){
             let chObj = this.getChannelFromNo( data.adressUrl, data.chNo );
             if( this.oven.cmdHistory.findIndex( c => c == chObj.topicAddress ) == -1 )
@@ -1050,6 +1057,10 @@ methods:{
 
 
     // pid send kill START
+    oven_onSendPsKill( emitPsAction ){
+        TODO
+        console.log('TODO');
+    },
 
     oven_onSendKill( pid, sigNal ){
         console.log('[oven] cmd0 sendKill to pid: [ '+pid+' ] [ '+sigNal+' ] ' );
@@ -1132,6 +1143,8 @@ methods:{
             return 1;
         }
        
+        let lastChunkSend = 0;
+        let lDelta = [];
         async function readAllChunks(readableStream) {
             const reader = readableStream.getReader();
             const chunks = [];
@@ -1145,14 +1158,20 @@ methods:{
                     return chunks;
                 }
                 let chunkStr = new TextDecoder().decode( value ).split('\n');
+                lDelta = [];
                 chunkStr.forEach( l => {
+                    lDelta.push( l );
                     ovenRunEntry.chunkTr.push( l );
                     chunks.push( l );
                 });
                 //console.log('[ovenFetch] res 3 chunk,', chunkStr);
 
-                if( 'onChunk' in onCB && onCB.onChunk != undefined )
-                    onCB.onChunk( chunks, ovenRunEntry );
+                if( 'onChunk' in onCB && onCB.onChunk != undefined ){
+                    let fakeOvenRun = ovenRunEntry;
+                    fakeOvenRun.chunkTr = ovenRunEntry.chunkTr.slice( lastChunkSend );
+                    onCB.onChunk( chunks, fakeOvenRun );
+                    lastChunkSend = ovenRunEntry.chunkTr.length;
+                }
             }
         };
         let onCBt = onCB;
@@ -1199,6 +1218,7 @@ methods:{
         console.log('[ chunksResult ] 59943 ',(typeof linesIn),' -> ',linesIn);
         let tr = {
             'cunksResult_resultObject':1,
+            pid:-1,
             runNo: -1,
             'lines': [],
             chunkTr: [],
@@ -1216,6 +1236,9 @@ methods:{
                 tr.exitCode = l.split(',')[1];
                 markerLine = true;
             
+            }else if( l.startsWith( msgsCODES['PID_NO'] ) ){
+                tr.pid = l.split(',')[1];
+
             }else if( l.indexOf('][sp][data] ...') != -1 ){
                 tr.runNo = l.substring(1).split(']')[0];
                 markerLine = true;
@@ -1626,7 +1649,7 @@ methods:{
         if( targetData == undefined )
             this.msgWrapInLog( msg );
 
-        else{
+        else if(  this.$refs.ENVHub != undefined ){
             console.log('[over] ENVHub rerouteENV ....');
             
             //chObj['result'] = msg;
@@ -1641,123 +1664,13 @@ methods:{
     },
 
 
-    /*
-    dataWrapType( title, data, valType ){
-        console.log('[oven data wrap]('+valType+') ... data typeof ('+(typeof data)+') isArray: ['+Array.isArray( data )+'] \n\ndata:\n',data);
-    
-        let trWrap = [];
-        
-    
-        if( Array.isArray( data ) ){
-            data.forEach( (l,li) => { 
-        
-                      
-    
-                if( valType == 'secLeft' ){
-                
-                    let secRes = msToDurationString( l );
-                        trWrap.push( secRes == 'NaNms' ? l : secRes+' sec.' );
-                
-                
-                
-                }else if( valType == 'percent' ){
-                
-                    let w = parseFloat(l);
-                    if( typeof w == 'object' ){
-                        trWrap.push( l );
-                    } else {
-                        let divName = 'ooccPerc_'+li+'_'+Date.now();
-                        setTimeout(()=>{ 
-                            new JustGage({
-                                id: divName,
-                                value: l,
-                                min: 0,
-                                max: 100,
-                                title: title,
-                                donut: true
-                                });
-
-                        },200);
-                        trWrap.push( `<div id="${divName}"></div>` );                    
-                    }
-                           
-                           
-                }else if( valType == 'toString' ){
-                
-                    console.log('[oven toString] ....',{title, data, valType});            
-                    trWrap.push( '<pre>'+l+'</pre>' );
-                    
-                            
-                }else if( valType == 'A progress bar' ){
-                
-                    let w = parseFloat(l);
-                    if( typeof w == 'object' || `${w}` == 'NaN'   ){
-                        trWrap.push( l );
-                    } else {                    
-                        let size = 20.00 - 6;
-                        let cDone = (size/100.0)*w;
-                        let percLen = `${parseInt(w)} `.length;
-                        if( cDone > 100.00 || cDone < 0.00 || size <= 0 ) return 'EE apbar '+data;
-                        
-                        console.log(`[oven apbar debug] w type(${typeof w}) then ... `,{data, w, percLen, size, cDone,'notDone':( size - cDone)});
-                        let strDone = '⠶'.repeat( parseInt( cDone ) );
-                        let strNot = "⠄".repeat( parseInt( size - cDone )  ); 
-                        let tr = `[ ${strDone}${strNot} ]${' '.repeat(4-percLen)}${parseInt(w)}%`;
-                        console.log('[oven A progress bar] '+tr);
-                        trWrap.push( tr );                   
-                   }
 
 
-                }else if( valType == 'percent bar' ){
 
-                    let divName = 'ooccPerc'+Date.now();
-                    let w = parseInt(l);
-                    if( typeof w == 'object' ){
-                        trWrap.push( l );
-                    } else {            
-                        let size = [150,20];
-                        trWrap.push( `
-                        
-                        <b style="">
-                            ${w} %
-                        </b>  
-                        <div id="${divName}" style="
-                            border: 2px solid black;
-                            width:${size[0]+10}px;
-                            height:${size[1]}px;
-                        
-                        ">
-                            <div style="border-left:2px solid black;height:${size[1]}px;width:${w}px;background-color: red;display:inline-block;" ></div>
-                            <div style="border-left:2px solid black;height:${size[1]}px;width:${size[0]-w}px;background-color: green;display:inline-block;" ></div>
 
-                        </div>` );
-                    }
-                        
-                    
-                }else if( valType == 'raw' ){
-                    trWrap.push( l );
-                    
-                }else{
-                    console.error('EE2 dataWrapType Nan ',valType);
-                }
-        
-            
-            });
-        
-        } else {
-            console.error('EE4 dataWrapType data is not array!');
-            return data;
-        
-        } 
-        
-        
-        
-        return trWrap.join('\n');
-        
-        
-        
-    },
-    */
+
+
+
 
 
 
@@ -2143,6 +2056,8 @@ methods:{
         }else if( cmd != undefined && liveSes == true ){
         
             let chunkNo = 0
+            
+
             let ovenRunItem = this.onDoFetch( 
                 targetData,
                 'onOvenCompact_full - kLive', 
@@ -2150,20 +2065,24 @@ methods:{
                 'onChunk':(r, resultObject )=>{
                 
                     if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
-                        let chunkTr = this.cunksResult_resultObject( r );                    
+                        //let chunkTr = this.cunksResult_resultObject( r );                    
                         console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) lines [ '+chunkTr.length+' ]... in '+
                             ( (Date.now() - tStart) /1000 )+' sec.\n'+
                             '\n'+r );
                         //this.onQeryTasksNow();
                         if( chunkTr.res.length > 0 ){
-                            postProcess( chunkNo, chunkTr.res );
+                            postProcess( chunkNo, resultObject.res );                            
+
                         } 
                         
                     }else if( postProcess != undefined && 
                         r.lastIndexOf(']# [@@] ping client[ ') == -1 
                         ){
                         //TODO2//   
-                        postProcess( chunkNo, r );
+                        
+
+                        // now it's doing chunks real
+                        postProcess( chunkNo, resultObject.chunkTr );
                     }
 
                     /*if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){

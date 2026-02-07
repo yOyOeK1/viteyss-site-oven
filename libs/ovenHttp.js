@@ -12,7 +12,8 @@ let writeHeadChunke = function( res ) {
 //msgsCODES['START_STDIO']
 let msgsCODES = {
     'START_STDIO': '#GOGOGO ... START',
-    'END_STDIO'  : '#GOGOGO ... END'
+    'END_STDIO'  : '#GOGOGO ... END',
+    'PID_NO'  : '#PID_NO##'
 };
 
 
