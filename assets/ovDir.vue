@@ -86,7 +86,8 @@ in dir (cashe):
             ">
             [{{ chi }}] 
             - {{ ch['rName'] }}
-            <pre v-html="chDatas[ chi ].contentW" class="fadeIcons"></pre><!--
+            <pre v-html="channels[ chi ].widget" class="fadeIcons"></pre><!--
+            <pre v-html="chDatas[ chi ].contentW" class="fadeIcons"></pre>
                 <pre
                 v-if="typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] == 'string' " 
                 title="Data as ... widget string" 
