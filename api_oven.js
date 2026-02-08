@@ -284,7 +284,9 @@ class serveroven{
             }            
 
             if( cmdToDo.startsWith('b64:') ){
-                cmdToDo = decodeURIComponent( atob( cmdToDo.substring(4) ) );
+                let uric = atob( cmdToDo.substring(4) );
+                console.log(uric);
+                cmdToDo = decodeURIComponent(  uric );
                 console.log(`[sp] command as base64 ...\n`,cmdToDo,'\n----------------------------END');
             }
 
