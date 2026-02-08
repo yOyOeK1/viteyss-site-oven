@@ -270,17 +270,18 @@ methods:{
               
         let lastRunId = -1;
         let lastExitId = -1;
-        this.oven.chsRuns.forEach( (cr,cuni) => {
-            if( cr.targetData.chNo == chNo && cr.targetData.adressUrl == this.adressUrl ){
-                if( cr.ovenRun.tEnd == undefined ){
-                    lastRunId = cuni;
+        this.oven.ovenRuns.forEach( (or,ori) => {
+            if( or.targetData != undefined && 
+                or.targetData.chNo == chNo && or.targetData.adressUrl == this.adressUrl ){
+                if( or.tEnd == undefined ){
+                    lastRunId = ori;
                     workList++;
                     if( tchan.wrapType == 'widget' )
-                        targetSrc+=`\n`+cr.ovenRun.chunkTr.join('\n');
-                }else{
+                        targetSrc+=`\n`+or.res.chunkTr.join('\n');
+                }else {
                     doneList++;
-                    lastExitId = cr.recipe.chNo;
-                    this.exitCodes[ cr.recipe.chNo ] = parseInt( cr.ovenRun.res.exitCode );
+                    lastExitId = or.targetData.chNo;
+                    this.exitCodes[ or.targetData.chNo ] = parseInt( or.res.exitCode );
                 }
             }
         });

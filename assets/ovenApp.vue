@@ -251,7 +251,7 @@ pennding now:</pre>
 
 
 
-
+ovenRuns: ({{ oven.ovenRuns.length }})
 <div style="position:relative;">
 <OvGroup
     :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'"
@@ -755,8 +755,8 @@ mounted(){
         this.onQeryOvenDirUpdate(
             '/aBasket', 
             o=> {
-                //this.oven.adressUrl = '/aBasket';
-                this.oven.adressUrl = '';
+                this.oven.adressUrl = '/aBasket';
+                //this.oven.adressUrl = '';
             });
 
 
@@ -800,7 +800,7 @@ data(){
             dir: {},
             adressUrl: undefined,
             ovenRuns:[],
-            chsRuns: [],
+            //chsRuns: [],
             isWatching: false,
             watchingIter: -1,
             logs: [],
@@ -1058,8 +1058,25 @@ methods:{
 
     // pid send kill START
     oven_onSendPsKill( emitPsAction ){
-        TODO
-        console.log('TODO');
+        //pkill -e -P ${spObj.sp.pid}` -signal ...
+        let toDel = [];
+        let findMe = this.oven.ovenRuns.filter( (or,ori) => {
+            if (or.targetData.adressUrl == emitPsAction.adressUrl &&
+                or.targetData.chNo == emitPsAction.chNo ){
+                    
+                toDel.push( ori );
+                return true;
+            }
+        });
+        console.log('TODO',emitPsAction,'\nhave targets: ('+findMe.length+')\n', findMe);
+        return 1;
+        this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`pkill -e -P ${spObj.sp.pid} -signal ${emitPsAction.extraArgs}`),{
+            'onReady':(r, resultObject )=>{
+                //let cmdRes = this.cunksResult_resultObject( r );
+                console.log('[oven] cmd0 sendKill DONE', resultObject );
+                //this.onQeryTasksNow();
+                }
+        });
     },
 
     oven_onSendKill( pid, sigNal ){
@@ -1096,18 +1113,21 @@ methods:{
         ){
 
         let fetchOpts = {};
-    
-        if( targetData != undefined ){
-            let srcRecipe = this.getChanneltargetData( targetData );
+        let srcRecipe = undefined;
 
+        if( targetData != undefined ){
+            srcRecipe = this.getChanneltargetData( targetData );
+            ovenRunEntry['targetData'] = srcRecipe;
+            /*
             this.oven.chsRuns.push({
                 recipe: srcRecipe,
                 targetData,
                 entryDate: Date.now(),
                 ovenRun: ovenRunEntry
             });
+            */
 
-            console.log('[ovenFetch] targetData defined targetData:',targetData,'\n\n over chsRuns: \n', this.oven.chsRuns );
+            console.log('[ovenFetch] targetData defined targetData:',targetData/*,'\n\n over chsRuns: \n', this.oven.chsRuns*/ );
             
             let trRecipe = {
                 'adressUrl': srcRecipe.adressUrl,
@@ -1118,6 +1138,7 @@ methods:{
                 'onlyWhenImOnline':srcRecipe.onlyWhenImOnline,
 
             };
+            
             fetchOpts = {
                 'method': 'POST',
                 headers:{
@@ -1144,7 +1165,8 @@ methods:{
         }
        
         let lastChunkSend = 0;
-        let lDelta = [];
+        let tcunksResult_resultObject = this.cunksResult_resultObject;
+
         async function readAllChunks(readableStream) {
             const reader = readableStream.getReader();
             const chunks = [];
@@ -1158,12 +1180,18 @@ methods:{
                     return chunks;
                 }
                 let chunkStr = new TextDecoder().decode( value ).split('\n');
-                lDelta = [];
+                
                 chunkStr.forEach( l => {
-                    lDelta.push( l );
+                    
                     ovenRunEntry.chunkTr.push( l );
                     chunks.push( l );
+
                 });
+
+                if( 1 || ovenRunEntry.res == {} ){
+                    ovenRunEntry.res = tcunksResult_resultObject( chunks );
+                }
+
                 //console.log('[ovenFetch] res 3 chunk,', chunkStr);
 
                 if( 'onChunk' in onCB && onCB.onChunk != undefined ){
@@ -1179,7 +1207,7 @@ methods:{
         console.log('go fetch url\nurl\n',url, '\n\nfetchOpts\n',fetchOpts);
 
 
-
+        
         fetch( url, fetchOpts )
             .then( res => {
                 let resStream = readAllChunks( res.body );
@@ -1805,17 +1833,26 @@ methods:{
             //chObj['statusNow'] = 'started';            
         }
 
-
+        let whilePrefix = '';
+        let whileSufix = '';
+        if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
+            recipe.liveSes = true;
+            whilePrefix = `while true; do `;
+            whileSufix = `\nsleep ${recipe.intervalEverySec};done`;
+            
+        }
         
         let makeItAs = () => {
             this.onOvenCompact_full( 'nooo custom', 
-                cmdPrefix+postProcessCmd.cmd, 
+                cmdPrefix + whilePrefix + postProcessCmd.cmd + whileSufix, 
                 postProcessCmd.postProcess, 
                 recipe.liveSes,
                 targetData
             );
         };
         
+         makeItAs();
+        /*
         if( recipe.liveSes == false && recipe.intervalEverySec != '0' ){
             this.iterators.push(
                 setInterval( 
@@ -1827,15 +1864,9 @@ methods:{
 
         }else{
             makeItAs();
-            /*
-            this.onOvenCompact_full( 'nooo custom', 
-                cmdPrefix+postProcessCmd.cmd, 
-                postProcessCmd.postProcess, 
-                recipe.liveSes,
-                targetData
-            );
-            */
+        
         }
+        */
 
     },
 
@@ -2061,7 +2092,7 @@ methods:{
             let ovenRunItem = this.onDoFetch( 
                 targetData,
                 'onOvenCompact_full - kLive', 
-                '/apis/oven/cmd0/b64:'+btoa(`${cmd}`),{
+                '/apis/oven/cmd0/b64:'+btoa( encodeURIComponent( cmd ) ),{
                 'onChunk':(r, resultObject )=>{
                 
                     if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){

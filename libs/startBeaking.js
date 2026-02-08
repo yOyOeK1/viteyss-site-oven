@@ -111,9 +111,9 @@ class Beakeary {
                 spObj.vClients.forEach( ciRID => {
                     if( ciRID != -1 ){
 
-                        if( spPidSend == false ){
-                            linRes.linesSplit.push( msgsCODES['PID_NO']+','+sp.pid+',' );
-                            spPidSend = true;
+                        if( !( 'spPidSend' in tvClients[ ciRID ] ) ){
+                            linRes.linesSplit.push( msgsCODES['PID_NO']+','+spObj.sp.pid+',' );
+                            tvClients[ ciRID ]['spPidSend'] = true;
                         }
                     
                         cl2ts( 
