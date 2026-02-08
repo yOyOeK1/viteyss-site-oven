@@ -123,7 +123,8 @@ function cl2ts( res, title,str ){
         console.log( '[local]'+title+str );
     }else{
         console.log( '['+res.runNo+']'+title+str );
-        res.write( str+"\n" );
+        //res.write( str+"\n" );
+        res.write( str );
 
     }
 }

@@ -720,7 +720,7 @@ import OvDir from './ovDir.vue';
 import OvENVView from './ovENVView.vue';
 import TagsColector from '@UiAssets/tagsColector.vue';
 import { getDefRecipe, ODdataWrapType } from '../libs/ovenDefinitions';
-import { msgsCODES } from '../libs/ovenHttp.js';
+import { msgsCODES, msgsCODESFlat } from '../libs/ovenHttp.js';
 
 
 
@@ -1054,29 +1054,53 @@ methods:{
 
     // dir CookBook END
 
-
+    // kill all 
+    //kill `ps aux | grep '#GOGOGO ... START_' | awk '{print $2}'`
 
     // pid send kill START
     oven_onSendPsKill( emitPsAction ){
         //pkill -e -P ${spObj.sp.pid}` -signal ...
         let toDel = [];
         let findMe = this.oven.ovenRuns.filter( (or,ori) => {
-            if (or.targetData.adressUrl == emitPsAction.adressUrl &&
+            if ( or.targetData != undefined &&
+                or.targetData.adressUrl == emitPsAction.adressUrl &&
                 or.targetData.chNo == emitPsAction.chNo ){
                     
                 toDel.push( ori );
                 return true;
             }
         });
-        console.log('TODO',emitPsAction,'\nhave targets: ('+findMe.length+')\n', findMe);
-        return 1;
-        this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`pkill -e -P ${spObj.sp.pid} -signal ${emitPsAction.extraArgs}`),{
-            'onReady':(r, resultObject )=>{
-                //let cmdRes = this.cunksResult_resultObject( r );
-                console.log('[oven] cmd0 sendKill DONE', resultObject );
-                //this.onQeryTasksNow();
-                }
-        });
+        console.log('PsKill',emitPsAction,'\nhave targets: ('+findMe.length+')\n', findMe);
+        if( findMe.length == 1 ){
+            let cmd = `pkill -e -P ${findMe[0].res.pid} --signal SIG${emitPsAction.extraArgs}`;
+            console.log('PsKill will send ['+cmd+']');
+            cmd = encodeURIComponent( cmd );
+            cmd = btoa( cmd );
+            let toastKill = $.toast({
+                text: `pkill ... pid ${findMe[0].res.pid} (${emitPsAction.extraArgs})`,
+                hideAfter: false,
+                allowToastClose: false
+            });
+            this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+cmd, {
+                'onReady':(r, resultObject )=>{
+                    //let cmdRes = this.cunksResult_resultObject( r );
+                    console.log('PsKill DONE', resultObject );
+                    //this.onQeryTasksNow();
+                    setTimeout(()=>
+                        toastKill.reset({
+                            text: `pkill ... pid ${findMe[0].res.pid} (${emitPsAction.extraArgs}) DONE`,
+                            hideAfter: true,
+                            allowToastClose: true
+                        }),
+                        200
+                        );
+                    }
+            });
+
+        }else{
+            console.error('ERR more then one ovenRun for chunnel ! 6789');
+            return 1;
+        }
     },
 
     oven_onSendKill( pid, sigNal ){
@@ -1172,7 +1196,7 @@ methods:{
             const chunks = [];
             ovenRunEntry.chunkTr = [];
             
-            let done, value;
+            let done, value,newL;
             while (!done) {
                 ({ value, done } = await reader.read());
                 if (done) {
@@ -1181,10 +1205,14 @@ methods:{
                 }
                 let chunkStr = new TextDecoder().decode( value ).split('\n');
                 
+                newL = 0;
                 chunkStr.forEach( l => {
                     
-                    ovenRunEntry.chunkTr.push( l );
-                    chunks.push( l );
+                    if( l.indexOf( msgsCODES['PING'] ) == -1 ){
+                        ovenRunEntry.chunkTr.push( l );
+                        chunks.push( l );
+                        newL++;
+                    }
 
                 });
 
@@ -1194,7 +1222,7 @@ methods:{
 
                 //console.log('[ovenFetch] res 3 chunk,', chunkStr);
 
-                if( 'onChunk' in onCB && onCB.onChunk != undefined ){
+                if( newL > 0 && 'onChunk' in onCB && onCB.onChunk != undefined ){
                     let fakeOvenRun = ovenRunEntry;
                     fakeOvenRun.chunkTr = ovenRunEntry.chunkTr.slice( lastChunkSend );
                     onCB.onChunk( chunks, fakeOvenRun );

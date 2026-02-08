@@ -111,7 +111,7 @@ class Beakeary {
                 spObj.vClients.forEach( ciRID => {
                     if( ciRID != -1 ){
 
-                        if( !( 'spPidSend' in tvClients[ ciRID ] ) ){
+                        if( tvClients[ ciRID ] != -1 && !( 'spPidSend' in tvClients[ ciRID ] ) ){
                             linRes.linesSplit.push( msgsCODES['PID_NO']+','+spObj.sp.pid+',' );
                             tvClients[ ciRID ]['spPidSend'] = true;
                         }
@@ -189,7 +189,7 @@ class Beakeary {
                 
 
             }else{
-                cl2(this.res, '# [@@] ping client[ '+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')');
+                cl2(this.res, msgsCODES['PING']+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')\n');
             }
 
         },15000);

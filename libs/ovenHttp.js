@@ -13,9 +13,13 @@ let writeHeadChunke = function( res ) {
 let msgsCODES = {
     'START_STDIO': '#GOGOGO ... START',
     'END_STDIO'  : '#GOGOGO ... END',
-    'PID_NO'  : '#PID_NO##'
+    'PID_NO'     : '#PID_NO##',
+    'PING'       : '# [@@] ping client[ ',
 };
 
+let msgsCODESFlat = [];
+Object.keys( msgsCODES ).forEach( k => msgsCODESFlat.push( msgsCODES[ k ] ) );
 
-export { msgsCODES, writeHeadChunke }
+
+export { msgsCODES, msgsCODESFlat ,writeHeadChunke }
 

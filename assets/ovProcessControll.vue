@@ -10,12 +10,17 @@
         >▷</span>
     <div v-if="[ 'working ...'].indexOf( psNow ) > -1"
         style="display: inline;">    
-        <a @click="$emit('on-ps-action', 'stop')">□</a>
-        <a @click="$emit('on-ps-action', 'continue')">◷</a>
-        <a @click="$emit('on-ps-action', 'kill')">☢</a>
+        <a title="Stop / pause"
+            @click="$emit('on-ps-action', 'STOP')">□</a>
+        <a title="Continue / resume"
+            @click="$emit('on-ps-action', 'CONT')">◷</a>
+        <a title="Kill cik dead"
+            @click="$emit('on-ps-action', 'KILL')">☢</a>
         |
-        <a @click="$emit('on-ps-action', 'n+')">◹</a>
-        <a @click="$emit('on-ps-action', 'n-')">◿</a>
+        <a title="Nice ++ TODO"
+            @click="$emit('on-ps-action', 'n+')">◹</a>
+        <a title="Nice -- TODO"
+            @click="$emit('on-ps-action', 'n-')">◿</a>
     </div>
 
 </template>
