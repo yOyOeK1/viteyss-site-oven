@@ -67,7 +67,7 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                 }else if( valType == 'percent' ){
                 
                     let w = parseFloat(l);
-                    if( typeof w == 'object' ){
+                    if(  typeof w == 'object' || `${w}` == 'NaN'  ){
                         trWrap.push( l );
                     } else {
                         let divName = 'ooccPerc_'+li+'_'+Date.now();
@@ -124,21 +124,28 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                     
                     
 
-                }else if( valType == 'A progress bar' ){
+                }else if( [ 'A progress bar', 'A progress bar2' ].indexOf( valType ) != -1 ){
                 
                     let w = parseFloat(l);
                     if( typeof w == 'object' || `${w}` == 'NaN'   ){
                         trWrap.push( l );
-                    } else {                    
-                        let size = 20.00 - 6;
+                    } else {        
+                        let bTheme = [ ' ⠽','⠿','⠂','⠯ ' ];
+                        
+                        if( valType == 'A progress bar2' ){ bTheme = [ '[_','▇','_','_]' ]; };
+                        
+                        let mSize = 16;
+                        mSize = parseInt( window.innerWidth / 11 );
+                        let size = mSize - 6;
                         let cDone = (size/100.0)*w;
                         let percLen = `${parseInt(w)} `.length;
                         if( cDone > 100.00 || cDone < 0.00 || size <= 0 ) return 'EE apbar '+data;
-                        
+                        let cNotDone = size - cDone;
+
                         console.log(`[OD apbar debug] w type(${typeof w}) then ... `,{data, w, percLen, size, cDone,'notDone':( size - cDone)});
-                        let strDone = '⠶'.repeat( parseInt( cDone ) );
-                        let strNot = "⠄".repeat( parseInt( size - cDone )  ); 
-                        let tr = `[ ${strDone}${strNot} ]${' '.repeat(4-percLen)}${parseInt(w)}%`;
+                        let strDone = bTheme[1].repeat( parseInt( cDone ) );
+                        let strNot = bTheme[2].repeat( (parseInt(size)-1)-parseInt( cDone )  ); 
+                        let tr = bTheme[0]+`${strDone}${strNot}`+bTheme[3]+`${' '.repeat(4-percLen)}${parseInt(w)}%`;
                         console.log('[OD A progress bar] '+tr);
                         trWrap.push( tr );                   
                    }
@@ -147,26 +154,40 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                 }else if( valType == 'percent bar' ){
 
                     let divName = 'ooccPerc'+Date.now();
-                    let w = parseInt(l);
-                    if( typeof w == 'object' ){
+                    let w = parseFloat(l);
+                    if( typeof w == 'object' || `${w}` == 'NaN'   ){
                         trWrap.push( l );
                     } else {            
-                        let size = [150,20];
-                        trWrap.push( `
-                        
-                        <b style="">
-                            ${w} %
-                        </b>  
-                        <div id="${divName}" style="
-                            border: 2px solid black;
-                            width:${size[0]+10}px;
-                            height:${size[1]}px;
-                        
-                        ">
-                            <div style="border-left:2px solid black;height:${size[1]}px;width:${w}px;background-color: red;display:inline-block;" ></div>
-                            <div style="border-left:2px solid black;height:${size[1]}px;width:${size[0]-w}px;background-color: green;display:inline-block;" ></div>
-
-                        </div>` );
+                        let mSize = parseInt( window.innerWidth  ) *0.8;
+                        let size = [ mSize ,20.00];
+                        let sizeW = ( size[0]/100.00 ) * w ;
+                        let styStr = `border-radius:5px;`;
+                        trWrap.push( `<div id="${divName}" style="
+                            border: 1px solid #7e0707;
+                            width: ${size[0]}px;
+                            height: ${size[1]}px;
+                            position:relative;
+                            ${styStr}
+                        "><div style="
+                            height: ${size[1]}px;
+                            left:0;
+                            top:0;
+                            width:${parseInt(sizeW)}px;background-color: #aeaeb4;
+                            display:block;
+                            box-shadow: inset 2px 2px 3px #383838;
+                            ${styStr}"
+                            ></div><div
+                            
+                            style="
+                                height: ${size[1]}px;
+                                right:0;
+                                top:0;
+                                width:${size[0]-parseInt(sizeW)}px;background-color: #f9f0ab;
+                                position:absolute;
+                                ${styStr}">
+                            </div
+                        ><b style="position:absolute;left:30px;top:0;">${w} %</b
+                        ></div>` );
                     }
                         
                     

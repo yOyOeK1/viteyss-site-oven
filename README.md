@@ -145,6 +145,26 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 #### notes
 
+* video session 2602090914
+  
+  - [x] runIt - in place 
+  
+  - [ ] oven channel tools need to hide when not over
+  
+  - [ ] more compact / less space betwean channels 
+  
+  - [ ] channel need to know if it's stop / killed / less buttons
+  
+  - [ ] chromium kiosk no title bar works on X11 need script
+  
+  - [ ] channel content can't change length cont
+  
+  - [ ] donut percent if not number then raw return  
+
+
+
+
+
 - [x] make it `invoike listener of ENV`
   - [x] api_oven now CMD b64 is wrapt first in `encodeURIComponent` then `btoa`
   - [ ] OvENVView can not do reroute of 
@@ -156,15 +176,11 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
       - [ ] to log
       - [ ] to terminal
 
-
-
 #### 260131
 
 - ovenMain.js reogar in api_oven
 
 - experiments with `blessedGate` `sh` 
-
-
 
 #### 260130.3
 

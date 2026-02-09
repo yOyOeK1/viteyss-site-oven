@@ -236,26 +236,10 @@ pennding now:</pre>
 
 
 
-
-<div v-if="[ 'view', 'debug' ].indexOf( oven.ovenMode ) != -1">
-
-    ENV start
-
-    <OvENVView 
-        ref="ENVHub"
-        @dir-channel-click="onEmit_dirChannelClick"
-        />
-
-</div>
-
-
-
-
-ovenRuns: ({{ oven.ovenRuns.length }})
 <div style="position:relative;">
 <OvGroup
     :gtitle="'Oven - Recipes Books ('+oven.adressUrl+')['+Object.keys( oven.dir ).length+']'"
-    v-if="[ 'view', 'debug' ].indexOf( oven.ovenMode ) != -1"
+    v-if="[ 'view', 'debug', 'edit','new' ].indexOf( oven.ovenMode ) != -1"
     >
 
     <div v-if="Object.keys( oven.dir ).length == 0">
@@ -264,11 +248,20 @@ ovenRuns: ({{ oven.ovenRuns.length }})
     <div v-else>
     
     
-        <a @click="onQeryOvenDirUpdate( oven.adressUrl )"
-            title="QOven for update dir with CookBook"
+        <div
             style="position:absolute;right:10px;top:4px;"
-            ><i class="fa-solid fa-retweet"></i>
-        </a>
+            >
+            <a @click="oven_onSendKillAllGOGO()"
+                title="Send kill to all GOGO ..."
+                ><i class="fa-solid fa-skull-crossbones"></i>
+            </a>
+            <a @click="onQeryOvenDirUpdate( oven.adressUrl )"
+                title="QOven for update dir with CookBook"
+                ><i class="fa-solid fa-retweet"></i>
+            </a>
+    
+            
+        </div>
     
         
     
@@ -384,8 +377,8 @@ keys in ovenRun:
 
 
 <OvGroup
-    gtitle="Baking recipe"
-    v-if="oven.ovenMode == 'edit'"
+    :gtitle="`Baking recipe - [ ${oven.ovenMode} ]`"
+    v-if="[ 'edit', 'new' ].indexOf( oven.ovenMode ) != -1"
     >
 
     ## <input type="text" v-model="recipeNow.rName"
@@ -537,32 +530,50 @@ keys in ovenRun:
 
 
     
-    ## toping action
-<pre style="padding:5px;">
-<button @click="onProbeSelectorFrom( recipeNow )"><i class="fa-solid fa-fire-burner"></i> Bake recepe</button>
+    ## toping action<br></br>
+
+<button 
+    title="Bake recipe as test"
+    @click="onProbeSelectorFrom( recipeNow )"><i class="fa-solid fa-fire-burner"></i></button>
  - OR -
-<div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">Save recipe to [ {{ oven.adressUrl }} ]:  
-<select v-model="recipeNow.saveChannelNo" 
+<div v-if="oven.dir != undefined && Object.keys( oven.dir).length > 0 ">[ {{ oven.adressUrl }} ]:<br></br>
+&nbsp;&nbsp;<select v-model="recipeNow.saveChannelNo" 
     title="Save is free channel"
     >
-    <option value="-1">[⠺] - select channel to stor in ...</option>
+    <option value="-1">[⠺] - select channel ...</option>
     <option v-for="ch in getChannelsFrom( oven.adressUrl ).length"
         :value="ch-1"
         :selected="false"
         >
-        [{{ch-1}}] - {{freeChannels[ ch-1 ] }}
+        [{{ch-1}}] - {{ freeChannels[ ch-1 ].substring(0,17)+(freeChannels[ ch-1 ].length>17?'...':'') }}
     </option>
 </select>
 <button
     :disabled="recipeNow.saveChannelNo=='-1'"
-    title="Save recipe" 
-    @click="onSaveSelectorFrom()"><i class="fa-regular fa-floppy-disk"></i>Save to file</button>
-</div></pre>        
+    title="Save recipe to file" 
+    @click="onSaveSelectorFrom()"><i class="fa-regular fa-floppy-disk"></i></button>
+</div>      
 
     
     
     
 </OvGroup>
+
+
+
+<OvGroup
+    gtitle="ENV s"
+    v-if="[ 'view', 'debug' ].indexOf( oven.ovenMode ) != -1"
+    >
+
+    <OvENVView 
+        ref="ENVHub"
+        @dir-channel-click="onEmit_dirChannelClick"
+        />
+
+</OvGroup>
+
+
 
 
 <OvGroup
@@ -753,10 +764,11 @@ mounted(){
         this.onQeryOvenDirUpdate('');
         //this.oven.adressUrl = '';
         this.onQeryOvenDirUpdate(
-            '/aBasket', 
+            '/aChanBack', 
             o=> {
-                this.oven.adressUrl = '/aBasket';
+                //this.oven.adressUrl = '/aBasket';
                 //this.oven.adressUrl = '';
+                this.oven.adressUrl = '/aChanBack';
             });
 
 
@@ -793,7 +805,7 @@ data(){
         oven:{
             working: true,
             ovenMode,
-            ovenModes: [ 'view', 'cmd', 'edit', 'debug' ],    
+            ovenModes: [ 'view', 'cmd', 'edit', 'debug','new' ],    
             runsNo: 0,
             tUpdate: undefined,
             spList: undefined,
@@ -828,7 +840,7 @@ data(){
                     ], 
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
-                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A small plot', 'A progress bar',  
+                valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A small plot', 'A progress bar', 'A progress bar2',  
                     // submit
                     'input list select submit', 
                     'input text submit TODO',
@@ -1003,6 +1015,8 @@ methods:{
             
             this.onModeSwith( 'edit' , done => {
                 this.recipeNow =  chObj;
+                this.saveChannelNo = data.chNo;
+
             } );
 
             // scroll to #Baking_recipe
@@ -1054,9 +1068,7 @@ methods:{
 
     // dir CookBook END
 
-    // kill all 
-    //kill `ps aux | grep '#GOGOGO ... START_' | awk '{print $2}'`
-
+    
     // pid send kill START
     oven_onSendPsKill( emitPsAction ){
         //pkill -e -P ${spObj.sp.pid}` -signal ...
@@ -1105,7 +1117,25 @@ methods:{
 
     oven_onSendKill( pid, sigNal ){
         console.log('[oven] cmd0 sendKill to pid: [ '+pid+' ] [ '+sigNal+' ] ' );
-        this.onDoFetch( undefined, 'oven_onSendKill', '/apis/oven/cmd0/b64:'+btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
+        this.onDoFetch( undefined, 'oven_onSendKill', 
+            '/apis/oven/cmd0/b64:'+
+                btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
+            'onReady':(r, resultObject )=>{
+                //let cmdRes = this.cunksResult_resultObject( r );
+                console.log('[oven] cmd0 sendKill DONE', resultObject );
+                //this.onQeryTasksNow();
+                }
+        });
+    },
+
+    // kill all 
+    //kill `ps aux | grep '#GOGOGO ... START_' | awk '{print $2}'`
+
+    oven_onSendKillAllGOGO( ){
+        console.log('[oven] KillAll GOGO ...' );
+        this.onDoFetch( undefined, 'oven_onSendKill', 
+            '/apis/oven/cmd0/b64:'+
+                btoa("kill `ps aux | grep '#GOGOGO ... START_' | awk '{print $2}'`"),{
             'onReady':(r, resultObject )=>{
                 //let cmdRes = this.cunksResult_resultObject( r );
                 console.log('[oven] cmd0 sendKill DONE', resultObject );

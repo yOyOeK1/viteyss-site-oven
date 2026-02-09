@@ -24,14 +24,14 @@
 
 <template>
 
-<pre v-if="channels.length > 0 &&  adressUrl != undefined">
-title({{ keyCount }}):      [ {{ lTitle }} ]
-adressUrl:  [ {{  adressUrl }} ] 
-subs: <span> <a @click="onChannelAction( -1, 'sub' )">[ .. ]</a> </span> | <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']"><a @click="onChannelAction( sDir, 'sub' )">[{{ sDiri }}] {{ sDir }}</a> | </span>
-channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dir[ adressUrl ]['layout']['jIn']['channels'] }} ]
+<pre v-if="channels.length > 0 &&  adressUrl != undefined"><!--
+title:      [ {{ lTitle }} ]
+-->adressUrl:  [ {{  adressUrl }} ] 
+<!--subs: --><span> <a @click="onChannelAction( -1, 'sub' )">..</a> </span> | <span v-for="sDir,sDiri in dir[ adressUrl ]['layout']['dirList']"><a @click="onChannelAction( sDir, 'sub' )">{{ sDir }}</a>|</span><!--
+channels:   [ {{ dir[ adressUrl ]['layout']['channels'].filter( c=>c).length }} / {{ dir[ adressUrl ]['layout']['channels'] }} ]
 in dir (cashe):    
             <span v-for="dn in Object.keys(dir)">[{{dn}}] </span>
-
+-->
 </pre>
 <pre v-else>
     CookBook not loaded ...
