@@ -189,10 +189,10 @@ class Beakeary {
                 
 
             }else{
-                cl2(this.res, msgsCODES['PING']+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')\n');
+                cl2(this.res, msgsCODES['PING']+clientOnline+' ] sp [ '+spObj.status+' ] ('+this.spList.length+')');
             }
 
-        },15000);
+        },1000*16);
 
         this.setBeakingProcess( spObj );
 

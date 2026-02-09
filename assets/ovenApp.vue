@@ -763,12 +763,13 @@ mounted(){
         console.log('[oven] mounted ... setting adressUrl: ""');
         this.onQeryOvenDirUpdate('');
         //this.oven.adressUrl = '';
+        let loadAutoStartAt = '/e01Mux';
         this.onQeryOvenDirUpdate(
-            '/aChanBack', 
+           loadAutoStartAt, 
             o=> {
                 //this.oven.adressUrl = '/aBasket';
                 //this.oven.adressUrl = '';
-                this.oven.adressUrl = '/aChanBack';
+                this.oven.adressUrl = loadAutoStartAt;
             });
 
 
@@ -841,6 +842,7 @@ data(){
                 topicAddress: [], 
                 //rName: [  ], // use it as a sugestios for $FILE_EDITOR | $FILE_EXPLORER | $TERMINAL | ...  
                 valType: [ 'raw', 'toString', 'toBraile', 'secLeft', 'percent', 'percent bar', 'A small plot', 'A progress bar', 'A progress bar2',  
+                    'volts',    
                     // submit
                     'input list select submit', 
                     'input text submit TODO',
@@ -1236,12 +1238,17 @@ methods:{
                 let chunkStr = new TextDecoder().decode( value ).split('\n');
                 
                 newL = 0;
+                let isService = false;
                 chunkStr.forEach( l => {
-                    
-                    if( l.indexOf( msgsCODES['PING'] ) == -1 ){
-                        ovenRunEntry.chunkTr.push( l );
-                        chunks.push( l );
-                        newL++;
+                    if( isService == false ){
+                        if( l.indexOf( msgsCODES['PING'] ) == -1 ){
+                            
+                            ovenRunEntry.chunkTr.push( l );
+                            chunks.push( l );
+                            newL++;
+                        }else{
+                            isService = true;
+                        }
                     }
 
                 });
@@ -1252,9 +1259,10 @@ methods:{
 
                 //console.log('[ovenFetch] res 3 chunk,', chunkStr);
 
-                if( newL > 0 && 'onChunk' in onCB && onCB.onChunk != undefined ){
+                if( isService == false && newL > 0 && 'onChunk' in onCB && onCB.onChunk != undefined ){
                     let fakeOvenRun = ovenRunEntry;
                     fakeOvenRun.chunkTr = ovenRunEntry.chunkTr.slice( lastChunkSend );
+                    console.log('toSendChunk',fakeOvenRun.chunkTr.length);
                     onCB.onChunk( chunks, fakeOvenRun );
                     lastChunkSend = ovenRunEntry.chunkTr.length;
                 }

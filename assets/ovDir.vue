@@ -12,12 +12,15 @@
     position:absolute;
     right:8px;
     margin-top:-6px;
-    opacity: 0.5;
+    opacity: 0.3;
+    transition:0.7s;
 }
 
 .ovenRecipTools:hover{
     border:2px solid rgb(143, 120, 45);
     opacity: 1.0;
+    transition:0.1s;
+
 }
 
 </style>
@@ -56,8 +59,11 @@ in dir (cashe):
         //'font-size': '75%',
         padding:'3px',
         margin:'1px',
-        'border-radius': '6px',
-        border:'3px solid #'+chDatas[ chi ].borderColor
+        'margin-bottom':'1px',
+        'border-radius': '10px',
+        'border-top':'3px solid #'+chDatas[ chi ].borderColor,
+        'border-left':'3px solid #'+chDatas[ chi ].borderColor,
+        'border-bottom':'1px solid #aaaacc',
         }"
 
 
@@ -112,7 +118,7 @@ in dir (cashe):
             display: table-cell;
             ">
             <pre style="background-color: white;">[{{ chi }}] - {{ ch['rName'] }} </pre>
-            <pre v-html="channels[ chi ].widget" class="fadeIcons"></pre><!--
+            <pre v-html="channels[ chi ].widget" class="fadeIcons" style="margin-left:5px;"></pre><!--
             <pre v-html="chDatas[ chi ].contentW" class="fadeIcons"></pre>
                 <pre
                 v-if="typeof dir[ adressUrl ]['layout']['channels'][ chi ]['widget'] == 'string' " 

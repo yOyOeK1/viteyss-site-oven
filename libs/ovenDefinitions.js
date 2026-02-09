@@ -149,8 +149,16 @@ let ODdataWrapType = ( title, data, valType, recipe ) => {
                         console.log('[OD A progress bar] '+tr);
                         trWrap.push( tr );                   
                    }
+                
+                }else if( valType == 'volts' ){
 
-
+                    let w = parseFloat(l);
+                    if( typeof w == 'object' || `${w}` == 'NaN'   ){
+                        trWrap.push( l );
+                    } else {    
+                        trWrap.push( w.toFixed(2)+' volt.' );
+                    }
+                
                 }else if( valType == 'percent bar' ){
 
                     let divName = 'ooccPerc'+Date.now();
