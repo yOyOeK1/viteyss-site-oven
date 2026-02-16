@@ -1,4 +1,4 @@
-<template>
+<template>pid[{{ psPid }}]
     <span v-if="1"
         :title="psNow"
         style="">[{{ psNow.substring(0,3) }}]</span>
@@ -27,7 +27,7 @@
 <script>
 export default{
 emits:[ 'on-ps-action' ],
-props:[ 'psNow' ],
+props:[ 'psNow', 'psPid' ],
 
 }
 </script>

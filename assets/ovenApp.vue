@@ -770,6 +770,7 @@ mounted(){
                 //this.oven.adressUrl = '/aBasket';
                 //this.oven.adressUrl = '';
                 this.oven.adressUrl = loadAutoStartAt;
+                this.getChannelAutoStart( loadAutoStartAt );
             });
 
 
@@ -986,21 +987,15 @@ methods:{
     },
 
 
+
+
+
     onEmit_dirChannelClick( data ){
         console.log('[dirCh_click] data ',data);
 
         if( data.action == 'click' ){
             let recipeO = this.getChannelFromNo( data.adressUrl, data.chNo );
             recipeO['adressUrl'] = data.adressUrl;
-
-            /*
-            // sp 'sp' ['sp']
-            if( !('sp' in chObj ) ) chObj['sp'] = {
-                tStart: 0, tPing:0, tEnd: undefined, exitCode: undefined, statusNow:'', resCount:0, result:[] ,
-                widget:'', widgetColor:'012001',
-            };
-            */
-
             this.onProbeSelectorFrom( recipeO, data );
 
         }else if( data.action == 'ps-action' ){
@@ -1048,6 +1043,7 @@ methods:{
                 console.log('[oven] will swap CookBook target ... OK nAdre');
                 this.oven.adressUrl = nAdre;
                 this.getChannelsFreeToArray( nAdre );
+                this.getChannelAutoStart( nAdre );
                 
             }else{
 
@@ -1056,6 +1052,7 @@ methods:{
                     console.log('[oven] will swap CookBook target ... fetching DONE nAdre');
                     this.oven.adressUrl = nAdre;
                     this.getChannelsFreeToArray( nAdre );
+                    this.getChannelAutoStart( nAdre );
                 } );
 
                 console.log('[oven] will swap CookBook target ... not ok');
@@ -1500,7 +1497,48 @@ methods:{
         //ev.target.value = '';
     },
 
-    
+
+    getChannelOvenRun( adressUrl, chNo ){
+        return this.oven.ovenRuns.filter( or => 
+            or.targetData != undefined && 
+            or.targetData.chNo == chNo && 
+            or.targetData.adressUrl == adressUrl
+
+        );
+
+    },
+
+    getChannelOvenIsRunning( adressUrl, chNo ){
+        let ovenRs = this.getChannelOvenRun( adressUrl, chNo );
+        if( ovenRs.length == 0 ) return false;
+
+        for( let ovr of ovenRs )
+            if( ovr.tEnd == undefined ) 
+                return true;
+    },
+
+    getChannelAutoStart( adressUrl ){
+        let ci = 0;
+        for( let c of this.oven.dir[ adressUrl ].layout.channels ){
+            if( c.autoStart == true ){
+                if( this.getChannelOvenIsRunning( adressUrl, c.chNo ) == false ){
+                    
+                    setTimeout(()=>{
+                        console.log('chk channels autostart @'+adressUrl+' -> '+c.chNo);
+                        let recipeO = this.getChannelFromNo( adressUrl, c.chNo );
+                        recipeO['adressUrl'] = adressUrl;
+                        this.onProbeSelectorFrom( recipeO, {'action':'click',adressUrl, chNo:c.chNo} );
+                    },200+(ci*500));
+
+                }else{
+                    console.log('chk channels autostart skip @'+adressUrl+' -> '+c.chNo,'\n chunnel is running ...');
+                }
+
+            }
+            ci++;
+        }
+
+    },
 
     
     // MOVEd TO OVENMAIN
@@ -1578,6 +1616,9 @@ methods:{
                 this.getChannelsFreeToArray( adressUrl );
                 if( cbOnReady != undefined )
                     cbOnReady( r );
+
+                
+                
            }
                 
        });

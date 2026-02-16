@@ -145,6 +145,7 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
 
 #### notes
 
+- [x] `autostart` in recipes now starts on enter of CookBook
 * video session 2602090914
   
   - [x] runIt - in place 
@@ -153,7 +154,7 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
   
   - [ ] more compact / less space betwean channels 
   
-  - [ ] channel need to know if it's stop / killed / less buttons
+  - [x] channel need to know if it's stop / killed / less buttons
   
   - [ ] chromium kiosk no title bar works on X11 need script
   
@@ -161,6 +162,7 @@ Started Beaking recipe is getting some ENV variables to help it to do the things
   
   - [x] donut percent if not number then raw return  
 - [x] make it `invoike listener of ENV`
+  
   - [x] api_oven now CMD b64 is wrapt first in `encodeURIComponent` then `btoa`
   - [ ] OvENVView can not do reroute of 
     - [ ] - [x] builds connection tree

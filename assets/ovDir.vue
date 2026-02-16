@@ -12,14 +12,14 @@
     position:absolute;
     right:8px;
     margin-top:-6px;
-    opacity: 0.3;
+    opacity: 0.1;
     transition:0.7s;
 }
 
 .ovenRecipTools:hover{
     border:2px solid rgb(143, 120, 45);
     opacity: 1.0;
-    transition:0.1s;
+    transition:0.6s;
 
 }
 
@@ -53,7 +53,7 @@ in dir (cashe):
 <div 
     v-if="channels.length > 0 &&  adressUrl != undefined"
     v-for="ch,chi in dir[ adressUrl ]['layout']['channels']"
-
+    :id="'chDiv'+chi"
     :style="{
         'font-family':'monospace',
         //'font-size': '75%',
@@ -96,6 +96,7 @@ in dir (cashe):
 
             <OvProcessControll 
                 :psNow=" psNow[ chi ] "
+                :psPid=" psNowPid[ chi ]"
                 @on-ps-action="onChannelAction( chi, 'ps-action', $event )"
                 /> | 
             <a 
@@ -103,11 +104,17 @@ in dir (cashe):
                 style="color:gray;"
                 @click="onChannelAction( chi, 'edit' )"><i class="fa-regular fa-pen-to-square"></i>
             </a>
-
-            <a 
+            
+            <a v-if="['Ready ...','done ...'].indexOf( psNow[ chi ] ) != -1"
                 title="Bake this recipe ..."
                 style="color:cadetblue;"
                 @click="onChannelAction( chi, 'click' )"><i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+
+            <a v-if="['working ...'].indexOf( psNow[ chi ] ) != -1"
+                title="Kill this baking ..."
+                style="color:cadetblue;"
+                @click="onChannelAction( chi, 'ps-action', 'KILL')"><i class="fa-solid fa-skull-crossbones"></i>
             </a>
 
             
@@ -172,6 +179,7 @@ data(){
         channels: [],
         chanIcn: [],
         psNow: [],
+        psNowPid:[],
         chDatas: [],
         lTitle : '',
         contentW:'. . .',
@@ -222,6 +230,7 @@ methods:{
             this.chanIcn = new Array( ic );
             this.psNow = new Array( ic ).fill('ps_init');
             this.chDatas = new Array( ic ).fill({});
+            this.psNowPid = new Array( ic ).fill( '' );
         }
 
         for(i=0 ; i<ic; i++ ){
@@ -254,9 +263,11 @@ methods:{
         if( this.channels == undefined ) return 1;
         let tchan = this.channels[ chNo ];
         let targetSrc = '<i class="fa-solid fa-at" title="to recipe channel ..."></i>';
+
         if( tchan.wrapType == 'log' ) targetSrc = '<i class="fa-regular fa-file-code" title="to log ..."></i>';
         else if ( tchan.wrapType == 'toast' ) targetSrc = '<i class="fa-regular fa-note-sticky" title="to toast ..."></i>';
         else if ( tchan.wrapType == 'terminal' ) targetSrc = '<i class="fa-solid fa-square-arrow-up-right" title="to terminal ..."></i>';
+        
         return targetSrc;
     },
 
@@ -279,14 +290,16 @@ methods:{
         this.oven.ovenRuns.forEach( (or,ori) => {
             if( or.targetData != undefined && 
                 or.targetData.chNo == chNo && or.targetData.adressUrl == this.adressUrl ){
+
                 if( or.tEnd == undefined ){
                     lastRunId = ori;
                     workList++;
-                    if( tchan.wrapType == 'widget' )
-                        targetSrc+=`\n`+or.res.chunkTr.join('\n');
+                    //if( tchan.wrapType == 'widget' )
+                    //    targetSrc+=`\n`+or.res.chunkTr.join('\n');
                 }else {
                     doneList++;
                     lastExitId = or.targetData.chNo;
+                    this.psNowPid[ or.targetData.chNo ] = `${or.res.pid}`;
                     this.exitCodes[ or.targetData.chNo ] = parseInt( or.res.exitCode );
                 }
             }
@@ -299,7 +312,7 @@ methods:{
         
         chData['contentW'] = targetSrc;
 
-        if( doneList != 0 ){
+        if( doneList != 0 && workList == 0 ){
             //this.psNow[ chNo ] = this.exitCodes[ chNo ] == 0 ? 'done ...' : 'error ...';
             this.psNow[ chNo ] = this.exitCodes[ chNo ] == 0 ? 'done ...' : 'done ...';
             chData['borderColor'] = '00aaff';
